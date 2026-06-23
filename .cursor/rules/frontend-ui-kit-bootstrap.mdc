@@ -1,0 +1,37 @@
+---
+description: >-
+  When 架构需求.md exists at project root, always follow the frontend-ui-from-spec
+  skill for UI implementation, asset-name interaction inference, spec updates,
+  and pixel-perfect delivery tasks.
+alwaysApply: true
+---
+
+# Frontend UI Kit — Project Bootstrap
+
+If `架构需求.md` exists in the **workspace root** (not only inside a nested kit folder):
+
+1. For any UI implementation, spec editing, design-to-code, pixel QA, screen inventory, interaction binding, or asset import task, read and follow `.cursor/skills/frontend-ui-from-spec/SKILL.md`.
+2. First-run ledger gate: before UI code changes, ensure `资源导入清单.md` and `像素还原清单.md` exist and already contain rows for inferred screens/assets/components/interactions. Write those rows first; if the docs cannot be written, stop and report the blocker instead of continuing with code-only work.
+3. Planning asset import gate: before page implementation, recursively scan every §2 allowed cutout/export/content-media path, import/copy/stage eligible resources into the project runtime asset system, and record every resource in `资源导入清单.md` with runtime name, source, role, inferred product/interaction, confidence, and binding status.
+4. Stage gate order is mandatory: setup/readiness -> screen inventory -> asset planning/import -> component/interaction blueprint -> page implementation -> evidence/verification. Do not skip a phase or begin a later phase while prior gate outputs are missing.
+5. Always read `.cursor/skills/frontend-ui-from-spec/screen-inventory-inference.md` before planning screens. Generate/repair §3 and `像素还原清单.md` rows from design-original filenames when the user has not listed every screen. Pixel checklist rows must include explicit `界面名称/状态` aligned to §3 `页面/状态`; do not leave rows with only filenames, implementation paths, or template placeholders.
+6. Always read `.cursor/skills/frontend-ui-from-spec/interaction-inference.md` and `.cursor/skills/frontend-ui-from-spec/project-interaction-patterns.md` before UI coding. Generate and write a naming-derived component/popup/interaction blueprint from cutouts/assets and similar project button patterns, even when §4 only describes the main flow.
+7. Treat `架构需求.md` as the scope and capability boundary. Original/resource naming may scaffold screens, UI/local-demo components, and interactions inside that scope; explicit §3/§4/§6 rules override naming conflicts. Sync `AGENTS.md` whenever §6 capability boundaries, screen inference, or interaction inference rules change.
+8. Reconcile `架构需求.md` §10 change records against §3/§4.2/§4.3/§6, `AGENTS.md`, `资源导入清单.md`, and `像素还原清单.md`. If §10 records completed interaction or asset work while §4.2/§4.3 still contains template placeholders, backfill de-duplicated patterns before continuing.
+9. De-duplicate similar inferred interactions by pattern. Record one rule in `架构需求.md` §4.2/§4.3/§10 with applicable pages/resources, and keep repeated instance evidence in `资源导入清单.md` / `像素还原清单.md`.
+10. Before claiming a screen is implemented, ensure `像素还原清单.md` has a row for that screen with `原稿文件` and `界面名称/状态`, then update it to **实现完成** when screen inventory, layout scale/tokens, runtime assets, constraints/styles, inferred component/popup/state controls, and safe interaction bindings are implemented. Before claiming **像素验收通过**, record lightweight engineering evidence: original file, implementation file, route/entry, layout/constraint/token location, registered assets, key measured elements, inferred components/popups, key interactions, and exceptions. Screenshots/diffs are optional spot checks, not required by default.
+11. Do not use runtime assets from the design-original folder; only use resources already listed/imported in `资源导入清单.md` from §2 allowed cutouts or existing project assets.
+12. Do not use external image URLs, icon packs, stock photos, generated images, downloaded assets, arbitrary local files, decorative images, icons, illustrations, textures, avatars, stickers, backgrounds, or substitute patterns. Code drawing is limited to basic UI primitives such as text, colors, borders, separators, shadows, rounded rectangles, skeleton blocks, and layout containers. Missing design cutouts must be reported and recorded instead of replaced with self-made graphics.
+13. Do not add real login, Apple login, payment/IAP, AI/chat billing, audio/video calls, permissions, backend writes, or destructive account behavior from original/resource names alone. These require §6 explicit scope.
+14. Kit templates and guides live only under `前端UI开发套件*/` (e.g. `架构需求-模版.md`, `前端UI开发流程与需求输入指南.md`). Do not copy `*-模版.md` to project root; read them via `@前端UI开发套件…/` when needed.
+
+If `.cursor/skills/frontend-ui-from-spec/SKILL.md` is missing at project root, stop and tell the user to run:
+
+```bash
+cd 前端UI开发套件3.0交互补全版（未实验） && ./install-to-project.sh /path/to/ProjectRoot --init-project-docs
+```
+
+If the kit folder is already inside the project root, `/path/to/ProjectRoot` is usually `..`.
+Then run `./verify-kit-install.sh /path/to/ProjectRoot` to confirm.
+
+When the user attaches or opens `架构需求.md`, `像素还原清单.md`, `资源导入清单.md`, or `AGENTS.md`, the file-specific rule `architecture-spec-auto-skill.mdc` adds the same workflow with higher priority—do not ask the user to invoke the skill manually.

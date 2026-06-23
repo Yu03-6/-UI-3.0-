@@ -1,0 +1,33 @@
+---
+description: >-
+  Auto-loads the frontend-ui-from-spec skill when a frontend UI architecture
+  spec, pixel QA list, asset import list, or AGENTS rules are attached or open.
+globs: "**/{架构需求.md,前端UI需求.md,frontend-ui-spec.md,ui-spec.md,像素还原清单.md,资源导入清单.md,AGENTS.md}"
+alwaysApply: false
+---
+
+# Frontend UI Spec → `frontend-ui-from-spec`
+
+When any matched spec or delivery doc is in context:
+
+1. **Confirm kit location**: Skill must live at `.cursor/skills/frontend-ui-from-spec/SKILL.md` under the **project root**. If only a nested copy exists (e.g. inside `前端UI开发套件*/`), tell the user to run `./install-to-project.sh` and `./verify-kit-install.sh` before continuing.
+2. Load and follow `.cursor/skills/frontend-ui-from-spec/SKILL.md`.
+3. First-run ledger gate: before coding, ensure `资源导入清单.md` and `像素还原清单.md` exist, then write inferred screen rows, asset rows, component/popup/state-button rows, and interaction blueprint rows into the matching docs. If these docs cannot be written, stop and report why; do not proceed with code-only implementation.
+4. Planning asset import gate: during planning, recursively scan every §2 allowed cutout/export/content-media path, import/copy/stage eligible resources into the project runtime asset system, and record every resource in `资源导入清单.md`. If resources cannot be imported/staged, mark them blocked and stop before page implementation unless the user explicitly allows a staged-only pass.
+5. Stage gate order is mandatory: setup/readiness -> screen inventory -> asset planning/import -> component/interaction blueprint -> page implementation -> evidence/verification. Do not skip directly into later page work.
+6. Always load `.cursor/skills/frontend-ui-from-spec/screen-inventory-inference.md` before planning screens. Produce a screen inventory from design-original filenames when §3 is empty or incomplete; do not wait for the user to name every screen. Mirror those rows into `像素还原清单.md` with explicit `界面名称/状态` aligned to §3 `页面/状态`.
+7. Always load `.cursor/skills/frontend-ui-from-spec/interaction-inference.md` and `.cursor/skills/frontend-ui-from-spec/project-interaction-patterns.md` before UI coding. Produce and write a naming-derived component/popup/interaction blueprint from allowed cutouts/assets and similar Sweeli/hdxc-style button patterns; do not wait for §4 to name every button.
+8. Treat `架构需求.md` as the scope and capability boundary. Do not add features outside it, but use original/resource naming and cases to scaffold screens, UI/local-demo components, and interactions inside that scope.
+9. Start with a readiness check: unresolved placeholders, asset paths (§2 原稿 vs 切图分离), screen inventory inference policy, navigation, naming-driven component/popup/interaction policy, global UI rules, data/scope, implementation constraints, implementation order, and acceptance criteria.
+10. If drafting or repairing a spec, read `**/前端UI开发流程与需求输入指南.md` from the kit folder (not from project root).
+11. For pixel/UI restoration work, also read project `像素还原清单.md` / `资源导入清单.md` when present; update screen coverage, implementation, interaction binding, and pixel QA statuses separately as screens ship. Do not mark a screen status if the pixel checklist row lacks a user-facing `界面名称/状态`.
+12. Before coding each screen, verify the relevant original/cutout folder, list missing assets, group screen variants and state pairs/name clusters, and classify inferred screens/components/popups/buttons as `explicit`, `inferred`, `待确认`, or `不可推断`.
+13. Runtime visuals must use resources already listed/imported in `资源导入清单.md` from §2 allowed cutouts or existing project assets. Do not use external image URLs, icon packs, stock photos, generated images, downloaded assets, arbitrary local files, decorative images, illustrations, textures, avatars, stickers, backgrounds, or substitute patterns unless §2 is updated and the user explicitly authorizes them.
+14. Reconcile §10 change records against their landing sections, `AGENTS.md`, `资源导入清单.md`, and `像素还原清单.md`; clear stale template placeholder rows when evidence exists.
+15. De-duplicate similar inferred interactions by pattern: one durable rule in `架构需求.md` §4.2/§4.3/§10, repeated instance evidence in `资源导入清单.md` / `像素还原清单.md`.
+16. Before claiming **像素验收通过**, record lightweight engineering evidence in the row, including original file, inferred screen row, inferred components/popups, and key interactions. Screenshot/diff/manual review evidence is optional and should be used only for spot checks, high-risk screens, or explicit user requests.
+17. Do not add real login, Apple login, payment/IAP, AI/chat billing, audio/video calls, permissions, backend writes, or destructive account behavior from resource names alone; §6 must explicitly authorize them.
+18. Finish with `.cursor/skills/frontend-ui-from-spec/reference.md` plus the spec's §10 checklist.
+19. Read `参考-完整流程与案例.md` only when the spec explicitly asks for complex local delivery, App Store/review flows, or real capabilities.
+
+Do not ask the user to invoke the skill manually when this rule has already matched.
