@@ -10,7 +10,8 @@
 请先扫描设计原稿文件夹，按原稿命名自动生成/修正 §3 屏幕清单和像素清单；再扫描切图/资源命名，生成组件/弹窗/状态按钮/交互蓝图后开始编码。
 规划阶段必须先递归扫描 §2 可用切图/内容素材路径，将所有运行时可用资源导入或暂存到工程资源目录，并完整写入 `资源导入清单.md`；未完成不得开始页面搭建。
 页面图像只能使用 `资源导入清单.md` 中已导入的 §2 可用切图或现有工程 Assets；不要使用外部图片 URL、图标包、图库素材、AI 生成图、下载素材或非 §2 路径文件，也不要自行绘制或生成替代图案、图标、插画、头像、贴纸、背景。缺图先登记待补，除非用户明确同意占位。
-必须按阶段门禁执行：安装/读取 -> 屏幕清单 -> 资源导入整理 -> 组件/交互蓝图 -> 页面实现 -> 证据验收，不可跳过某阶段直接进入下一步。
+必须按阶段门禁执行：安装/读取 -> 屏幕清单 -> 资源导入整理 -> 组件/交互蓝图 -> P0 实现 -> P0 全量截图对比 -> P1 实现 -> P1 全量截图对比 -> P2 实现 -> P2 全量截图对比 -> 最终验收，不可跳过某阶段直接进入下一步。
+P0 截图矩阵未闭环不得进入 P1；P1 截图矩阵未闭环不得进入 P2。每个页面、弹窗、空态、加载态、错误态和关键变体都必须截图并与目标原稿对比。
 请对照 project-interaction-patterns.md 补齐常见按钮操作：导航、登录、社交、举报拉黑、聊天评论、发布、充值、音视频、设置和黑名单。
 低风险和安全本地演示交互可直接实现，中/高风险写为待确认，不要擅自接真实能力。
 每屏完成后再次更新 `资源导入清单.md`、`像素还原清单.md` 和 `架构需求.md` §10。如果无法写入任一清单，请停止并说明原因，不要只改代码。
@@ -93,7 +94,7 @@ Expected project root files:
 - [ ] Original/cutout path checked.
 - [ ] First-run ledger gate satisfied: `资源导入清单.md` and `像素还原清单.md` already contain rows for current inferred screens/assets before UI code changes.
 - [ ] Planning asset import gate satisfied: all §2 allowed cutouts/content assets have been scanned, imported/staged, named, and written to `资源导入清单.md` before page implementation.
-- [ ] Stage gate order followed; no later stage started before earlier stage outputs were written.
+- [ ] Stage gate order followed; no later stage or next priority started before earlier outputs and screenshot matrix rows were written.
 - [ ] If §3 was empty/incomplete, design-original filenames were scanned and screen rows were generated.
 - [ ] Existing §10 change records were checked against §3/§4.2/§4.3/§6/AGENTS/resource/pixel docs.
 - [ ] Screen row has priority, original file, page/state, type, implementation target, route/entry, and confidence/notes.
@@ -114,10 +115,17 @@ Expected project root files:
 - [ ] `像素还原清单.md` row updated:
   - implementation status
   - interaction binding status
+  - screenshot status
+  - target original
+  - implementation screenshot
+  - comparison evidence
+  - viewport/device
+  - difference level
+  - repair status
   - pixel QA status
   - engineering evidence
   - exceptions/repair notes
-- [ ] Optional screenshot/diff/manual spot check recorded only if used.
+- [ ] Screenshot comparison recorded for every distinct page/state/dialog; spot checks are used only for repeated component instances after a representative pass.
 - [ ] Build/lint/test run or skip reason recorded.
 
 ## Pixel Evidence
@@ -138,14 +146,20 @@ state-sync: ...
 failure-path: ...
 keyboard: ...
 components: ...
+screenshot: ...
+compare: ...
+viewport: ...
+difference: ...
+repair: ...
 exceptions: 无例外
 ```
 
-Screenshots/diffs/manual review are optional spot checks, not default gates.
+Screenshots are mandatory for every distinct screen, popup, state, and critical variant. Diffs, side-by-side comparison, or manual review notes are mandatory comparison evidence. Random spot checks cannot replace per-screen/state coverage.
 
 ## Final Acceptance
 
-- [ ] All P0 screens implemented or deferred with reason.
+- [ ] All P0 screens implemented or deferred with reason, and P0 screenshot matrix is closed before P1 work.
+- [ ] All P1 screens implemented or deferred with reason, and P1 screenshot matrix is closed before P2 work.
 - [ ] Screen/state coverage matches design-original folder and `架构需求.md` §3.
 - [ ] Asset list is complete.
 - [ ] No arbitrary substitute images, icons, illustrations, textures, avatars, stickers, backgrounds, or decorative patterns were created.
@@ -155,6 +169,6 @@ Screenshots/diffs/manual review are optional spot checks, not default gates.
 - [ ] Similar interactions are de-duplicated by pattern, with applicable pages/resources recorded.
 - [ ] No template placeholder rows remain in active project sections such as §4.2, §4.3, resource list, or global resources.
 - [ ] No runtime design-original references.
-- [ ] Pixel checklist has engineering evidence for passed rows.
+- [ ] Pixel checklist has engineering evidence and screenshot comparison evidence for passed rows.
 - [ ] Scope did not exceed declared capability boundaries.
 - [ ] Remaining assumptions and repair items are listed.

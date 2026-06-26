@@ -34,8 +34,8 @@ When confidence matters, include it in `备注`:
 Use this aligned shape in `像素还原清单.md`:
 
 ```markdown
-| 优先级 | 原稿文件 | 界面名称/状态 | 对应实现 | 开发状态 | 交互绑定 | 像素验收 | 工程证据/问题 |
-|---|---|---|---|---|---|---|---|
+| 优先级 | 原稿文件 | 界面名称/状态 | 对应实现 | 开发状态 | 交互绑定 | 截图状态 | 目标原稿 | 实现截图 | 对比证据 | 视口/设备 | 差异等级 | 返修状态 | 像素验收 | 工程证据/问题 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 ```
 
 Alignment requirements:
@@ -53,6 +53,9 @@ Alignment requirements:
 | P0 | Main product roots such as `feed`, `community`, `社区`, `chat`, `消息`, `me`, `我的`, `profile` when they are tab roots | Main navigation coverage |
 | P1 | Detail pages, publish/create, settings, recharge/paywall, chat room, video call, activity detail, list/detail pages | Important secondary flows |
 | P1 | Popups blocking core flows: unlock, insufficient balance, permission rationale, report/block, delete confirm, success/failure | Interaction states that users must reach |
+| P1 | Search, live room, AI role list/chat, article/read list/detail, daily match/resonance, relationship lists | Common secondary discovery/social flows |
+| P1 | Friend list/request list, profile statistic drilldowns, settings account actions, gated quota/paywall prompts | Common social/account secondary flows |
+| P1 | Ranking/leaderboard, notification list, post detail/comment detail, wallet package selection, media picker/preview states | Common engagement and monetization flows |
 | P2 | Empty/loading/error states, onboarding variants, optional lists, rarely used settings subpages, alternate visual states | Quality and edge coverage |
 
 If a filename contains both a P0 root and a state marker, keep the root page P0 and the state row P1/P2 depending on user impact.
@@ -64,7 +67,24 @@ If a filename contains both a P0 root and a state marker, keep the root page P0 
 | `启动`, `launch`, `splash` | 状态 / 启动页 |
 | `tab`, `首页`, `home`, `feed`, `社区`, `chat`, `消息`, `me`, `我的` | Tab 页面 when part of main navigation |
 | `登录`, `注册`, `sign in`, `login`, `register`, `forgot` | FullScreen / Push 页面 depending platform route |
+| `账号登录`, `邮箱登录`, `welcome back`, `account login` | Push 页面 / 登录表单 |
+| `创建账号可跳过`, `可跳过填写`, `skip profile`, `optional profile` | Push 页面 / 注册资料可选状态 |
 | `详情`, `detail`, `profile`, `setting`, `设置`, `publish`, `发布`, `recharge`, `充值` | Push 页面 |
+| `动态详情`, `post detail`, `comment detail`, `评论区` | Push 页面 / 详情评论页 |
+| `排行`, `排名`, `rank`, `leaderboard` | Push 页面 / 排行榜；通常有 Today/Weekly 或类似分段 |
+| `搜索`, `search`, `find` | Push 页面 / 搜索状态 |
+| `直播`, `直播间`, `live`, `room` | FullScreen / Push 页面 |
+| `阅读`, `文章`, `read`, `article`, `story`, `soul` | Push 页面；列表/详情按文件名或变体拆分 |
+| `ai`, `ai聊天`, `ai chat`, `assistant`, `bot`, `角色` | Push 页面 / Overlay；列表、聊天、余额不足弹窗需拆分 |
+| `共鸣`, `匹配`, `resonance`, `match`, `echo` | Push 页面 / 卡片状态；通常从首页、消息或推荐卡进入 |
+| `朋友列表`, `好友列表`, `friends`, `my friends` | Push 页面 / 关系列表 |
+| `好友申请`, `friend request`, `requests` | Push 页面 / 申请列表 |
+| `粉丝`, `关注`, `followers`, `following` | Push 页面 / 关系统计列表 |
+| `聊天次数`, `次数`, `quota`, `limit`, `free chats` | Overlay / 用量耗尽或配额解锁弹窗 |
+| `通知`, `消息清除`, `notification`, `notice`, `clear messages` | Push 页面 / 列表清理状态；清除范围需确认 |
+| `付费`, `余额不足`, `not enough`, `insufficient`, `paywall` | Overlay / 余额不足或付费提示弹窗 |
+| `发布成功`, `success`, `posted`, `done` | Overlay / 成功反馈弹窗 |
+| `照片选择`, `视频预览`, `media preview`, `photo picker`, `video preview` | 页面状态 / 媒体选择预览状态 |
 | `popup`, `modal`, `dialog`, `弹窗`, `提示`, `解锁`, `成功`, `失败`, `confirm` | Overlay / 弹窗 |
 | `sheet`, `举报`, `拉黑`, `action` | Bottom Sheet |
 | `empty`, `缺省`, `空态`, `暂无` | 状态 / 空态 |
@@ -88,15 +108,33 @@ If a filename contains both a P0 root and a state marker, keep the root page P0 
 | login selection | Cold start / Logout |
 | sign in | Login selection > Sign in |
 | register/create account | Login selection > Create account |
+| optional profile registration | Register credentials > Next; may skip optional fields if spec allows |
 | main/home tab | MainTab default |
 | feed/community tab | MainTab > Feed/Community |
 | chat/messages tab | MainTab > Chat/Messages |
 | me/profile tab | MainTab > Me/Profile |
 | settings | Me/Profile > Settings |
+| logout/delete account | Settings account section |
+| friends list | Messages/Friends card or Me/Profile relationship statistic |
+| friend requests | Messages/Requests card or notification badge |
+| followers/following lists | Me/Profile statistic tap |
 | recharge/paywall | Me balance / paywall popup / insufficient balance |
+| wallet package selection | Recharge page package tap / Continue |
 | publish/create | Feed/Community > Add/Post |
+| publish success popup | Publish submit success |
+| media preview state | Photo/video picker success; delete returns to picker placeholder |
+| search | Explore/Search entry / search field tap |
+| live room | Explore/Feed live card > Join/Watch |
+| article/read list | Explore/Discover card > article/read list |
+| article/read detail | Article/read card tap |
+| AI role list | Explore/Discover AI/Mood Mate card |
+| AI chat | AI role card / AI entry |
+| daily match/resonance | Home recommendation card / message match card |
 | detail/profile | Card/avatar/list item tap |
 | comment | Card comment tap |
+| post detail/comment detail | Content card tap or comment tap |
+| ranking/leaderboard | Home rank card / See full rank |
+| notifications | Home bell or Messages notification entry |
 | report/block sheet | More/report button |
 | unlock/insufficient/success popup | Primary action result |
 | empty/loading/error | Corresponding list/network/data state |
@@ -128,12 +166,31 @@ Use kit cases as examples, not as hardcoded product truth:
 | `登录选择登录方式.png` | P0 / 选择登录方式 / FullScreen / cold launch root |
 | `登录sign in.png` | P0 / 邮箱登录 / Push or auth screen / Sign in |
 | `注册1.png`, `注册2.png` | P0 / 注册步骤 / Push / Create account flow |
+| `创建账号可跳过填写.png` | P0 / 注册资料可选 / Push / Create account flow optional profile step |
+| `账号登录.png` | P0 / 邮箱登录 / Push / Login selection Sign in |
 | `首页.png` | P0 / Home / Tab 页面 / MainTab default |
 | `社区.png` | P0 / Feed or Community / Tab 页面 / MainTab tab |
 | `消息.png` | P0 / Chat or Messages / Tab 页面 / MainTab tab |
 | `我的.png` | P0 / Me / Tab 页面 / MainTab tab |
 | `ai聊天 - 充值解锁.png` | P1 / AI 余额不足弹窗 / Overlay / AI send with insufficient balance |
+| `ai.png` | P1 / AI 角色列表 / Push / Explore or AI entry card |
+| `ai聊天.png` | P1 / AI 聊天 / Push / AI role card |
 | `社区 - 发帖解锁.png` | P1 / 发布扣费/余额不足 / Overlay / Publish Post |
+| `解锁发布.png` | P1 / 发布解锁弹窗 / Overlay / publish entry when locked |
+| `搜索.png` | P1 / 搜索 / Push / search field tap |
+| `动态详情.png` | P1 / 动态详情 / Push / content card or comment tap |
+| `排行.png` | P1 / 排行榜 / Push / rank card or see full rank |
+| `通知.png`, `消息清除.png` | P1 / 通知或消息清理状态 / Push 或弹窗 / bell, notification, clear action |
+| `直播间.png` | P1 / 直播间 / FullScreen / live card join/watch |
+| `阅读文章-ai生成内容就行.png` | P1 / 阅读文章列表 / Push / reading/article card |
+| `阅读文章-ai生成内容就行-2.png` | P1 / 阅读文章详情 / Push / article card tap |
+| `今日共鸣.png` | P1 / 今日共鸣 / Push / home resonance/match card |
+| `朋友列表.png` | P1 / 朋友列表 / Push / Messages friends card or relationship statistic |
+| `好友申请.png` | P1 / 好友申请 / Push / Messages requests card |
+| `粉丝朋友关注.png` | P1 / 关系列表 / Push / Me/Profile relationship statistic |
+| `Ai聊天解锁聊天次数.png` | P1 / AI 聊天次数不足弹窗 / Overlay / AI send quota exhausted |
+| `付费弹窗.png`, `余额不足弹窗.png` | P1 / 余额不足或付费弹窗 / Overlay / gated action or paid send |
+| `发布视频成功弹窗.png`, `发布成功.png` | P1 / 发布成功弹窗 / Overlay / publish submit success |
 | `举报拉黑.png` | P1 / 举报拉黑 Sheet / Bottom Sheet / More/report |
 | `视频聊天.png`, `视频聊天-2.png` | P1 / 视频聊天 / Push 页面/状态 / chat video button |
 | `缺省页.png` | P1/P2 / 通用空态 / 状态 / empty list |

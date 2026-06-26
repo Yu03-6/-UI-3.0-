@@ -76,12 +76,25 @@ Use this taxonomy before implementation and when auditing an existing project:
 | Content card | `card`, `like`, `comment`, `more`, `follow`, `delete` | ownership rules, count/state toggle, detail route, delete confirm, report/block sheet | Low/Medium |
 | Social graph | `follow`, `following`, `friend`, `accept`, `reject`, `request`, badge | local store, row removal, badge count, cross-screen card/profile sync | Medium |
 | Moderation | `report`, `block`, `blacklist`, `remove`, `unblock` | sheet actions, local filtering/removal, unblock path, backend boundary | Medium/High |
+| Profile/stat drilldown | `posts`, `followers`, `following`, statistic labels, profile counters | statistic tap route, filtered list content, row actions, empty state, cross-screen sync | Medium |
+| Say hi/chat gate | `say_hi`, `hi`, `chat`, `follow`, relationship state | follow-first requirement, greeting sent confirmation, chat eligibility, duplicate prevention | Low/Medium |
+| Search/history | `search`, `history`, `clear`, `chip`, local search engine | local filtering, history chip persistence, clear/delete history item, no-result empty state, keyboard submit | Low/Medium |
+| Article/read | `read`, `article`, `story`, `soul`, `grid`, `detail` | list/detail route, generated/static content boundary, reading state if any, empty state | Low/Medium |
+| Live room | `live`, `room`, `viewer`, `people`, `like`, `comment` | entry route, video source, comment stream, like animation, composer keyboard, report/block path | Medium/High |
+| Match/resonance | `match`, `echo`, `resonance`, `music`, `pair` | seeded/random pair source, blocked-user exclusion, refresh conditions, music play/pause boundary | Low/Medium |
 | Media picker | `photo`, `album`, `avatar`, `cover`, `upload`, `PHPicker` | selection limit, cancel, cache/runtime path, delete selected media, permission/system scope | Medium/High |
 | Publish/create | `publish`, `post`, `draft`, `submit`, `success` | required fields, cost/gate if any, success popup, store insert, list/profile refresh | Medium/High |
+| Floating create button | `publish`, `post`, `plus`, `add`, draggable button/helper | default position, drag bounds, tap vs drag threshold, lock/paywall route | Medium |
 | Paywall/wallet | `coin`, `recharge`, `iap`, `pay`, `product`, StoreKit | product source, selected package, purchase success/failure, transaction de-dup, balance sync | High |
 | Chat/AI | `chat`, `message`, `ai`, `send`, `reply` | message append, fee/free quota, insufficient balance path, local/real service boundary | High when billing/service |
+| Quota/free-count gate | `quota`, `limit`, `free`, `次数`, `chats left`, unlock prompt | decrement rule, exhausted state, unlock/recharge route, reset scope | High when billing/service |
 | Audio/video | `call`, `video`, `mic`, `speaker`, `camera`, `end` | permission request, on/off state, timeout/failure, preview vs RTC boundary, end route | High |
+| Wallet package grid | `recharge`, `package`, `pkg`, `product`, `price`, `continue`, selected/normal package assets | package selection, disabled purchase state, price fallback/loading, success/failure/cancel, balance refresh | High |
+| Media preview | `preview`, `play`, `pause`, `delete`, `photo_picker`, `video_preview` | picker cancel, preview display, play/pause, delete resets selection, required-field validation | Medium/High |
+| Notification/request cleanup | `notification`, `request`, `clear`, `ignore`, `dismiss`, `accept` | remove local row or clear list, refresh badge/empty state, preserve source content unless destructive scope is explicit | Medium |
+| Cross-screen store sync | `NotificationCenter`, `EventBus`, `store`, `observable`, `contentChanged`, `socialChanged`, `walletChanged`, `chatChanged` | mutation posts domain event; all reused cards/lists/counts refresh from source store | Medium |
 | Legal/settings/account | `settings`, `privacy`, `agreement`, `contact`, `logout`, `delete_account` | static/WebView URL, error state, confirmation, test-account exception, destructive scope | Medium/High |
+| Optional registration profile | `skip`, `optional`, `profile`, `avatar`, `name`, `bio` | optional field defaults, skip/create route, local profile persistence, validation only for required fields | Medium/High if real account |
 | Empty/loading/error | `empty`, `loading`, `error`, `badge`, `99+` | data condition, retry/primary action, badge hide/show, stale state cleanup | Low/Medium |
 
 ## Naming Grammar
@@ -116,14 +129,22 @@ tab_home_sel
 | `tab`, `segment`, `filter`, `selected`, `normal`, `sel` | Tab/segmented control | Switch selected state and content list | Low |
 | `on/off`, `open/close`, `active/inactive`, `follow/following`, `like/liked` | Single stateful control | Toggle state; use paired asset or code-drawn selected state | Low/Medium |
 | `accept/reject`, `agree/refuse`, `yes/no` | Two-action row or dialog | Run local accept/reject path; remove row or dismiss when local/demo | Medium |
+| `posts`, `followers`, `following`, `fans`, `friends_count` | Profile statistic entry | Push filtered list; keep row actions and counts synced with local store | Medium |
 | `empty`, `placeholder`, `no_data` | Empty-state component | Show reusable empty view with optional primary action | Low |
 | `input`, `field`, `send`, `search` | Form/search composer | Bind text field and local send/search/filter when present | Low/Medium |
+| `search`, `history`, `chip`, `clear` | Search surface/history chips | Filter local data; persist or display recent queries when local storage exists; clear item/all; show empty state for no result | Low/Medium |
 | `back`, `close`, `cancel`, `arrow_left` | Navigation control | Pop/dismiss/cancel current flow | Low |
 | `more`, `ellipsis`, `report`, `block`, `blacklist` | More/actions sheet | Present bottom sheet; local block/report only unless backend is declared | Medium |
 | `pay`, `iap`, `coin`, `recharge`, `subscribe`, `vip` | Purchase/paywall surface | UI only unless §6 declares real purchase | High |
+| `package`, `pkg`, `product`, `price`, `continue`, `balance`, `wallet` | Wallet/package selection surface | Select one package locally; purchase only when §6 declares StoreKit/payment, with loading/disabled state and balance sync | High |
+| `quota`, `limit`, `free`, `次数`, `unlock_chat`, `chats_left` | Usage quota/paywall surface | UI/local counter only unless §6 declares billing or quota reset rules | High |
 | `login`, `apple`, `google`, `phone`, `email`, `register`, `logout` | Auth surface | UI/local flow only unless §6 declares real auth | High |
 | `ai`, `chat`, `message`, `call`, `video_call`, `voice`, `mic`, `camera` | Chat/AI/media surface | UI/local demo only unless §6 declares real service or permission | High |
+| `live`, `room`, `viewer`, `people`, `audience` | Live room/list surface | Use bundled/local media or placeholder only when allowed; comments/likes local unless backend/live service is declared | Medium/High |
+| `read`, `article`, `story`, `soul`, `recommend` | Reading/list-detail surface | Generate local list/detail UI from provided/static content; real content API or AI generation requires §6 | Low/Medium |
+| `match`, `resonance`, `echo`, `pair`, `music` | Match/resonance card | Seed or rotate local pair/card; exclude blocked users if social store exists; music play/pause only if local media exists | Low/Medium |
 | `delete_account`, `deactivate`, `withdraw` | Account destructive action | Require §6 explicit behavior and confirmation | High |
+| `logout`, `log_out`, `sign_out` | Session action | Confirm or direct return to auth root according to spec; clear only declared session state | Medium/High |
 
 ## Name Dictionary
 
@@ -132,20 +153,31 @@ tab_home_sel
 | `back`, `nav_back`, `arrow_left`, `return` | Pop current page or dismiss current modal | Low |
 | `close`, `x`, `cancel`, `dismiss` | Close sheet/dialog/current flow | Low |
 | `tab`, `segment`, `selected`, `active`, `normal`, `indicator`, `sel` | Switch tab/segment/filter and update selected state | Low |
+| `photo`, `video`, `notes`, `posts` with counts on a profile/content page | Segmented content switch; update selected style, list/grid, count labels, and empty state | Low/Medium |
 | `expand`, `collapse`, `more_text`, `fold` | Expand/collapse local content | Low |
 | `like`, `heart`, `favorite`, `collect`, `star` | Local toggle with selected/normal state; optional bounce/particle animation if project has animation helpers | Low |
 | `comment`, `reply`, `send` | Open comments or append/send local text when a composer exists; otherwise `待确认` | Low/Medium |
+| `search`, `history`, `chip`, `clear` | Local search/filter; save query chips when local storage exists; clear deletes history only, not content | Low/Medium |
+| `notification`, `notice`, `badge`, `clear`, `ignore`, `dismiss` | Notification/request row cleanup; refresh badge and empty state; do not delete business content unless specified | Medium |
 | `share` | Open local share sheet only if project/spec allows it; otherwise display disabled/no-op and mark `待确认` | Medium |
 | `follow`, `following`, `fans`, `friend` | Local follow/unfollow or social relationship toggle; sync visible counts if local store exists | Medium |
+| `say_hi`, `hi`, `wave`, `greet` | Local greeting or chat-intent action; if project requires relationship first, prompt follow/add friend before chat | Low/Medium |
 | `add_friend`, `friend_request`, `accept`, `reject` | Local request/accept/reject demo state if social store exists | Medium |
 | `report`, `block`, `blacklist`, `more`, `ellipsis` | Open bottom action sheet; report/block use local demo state unless real backend is declared | Medium |
 | `delete`, `remove`, `trash` | Show confirmation; delete only current user's local content or local account data when §6 allows | Medium/High |
 | `edit`, `profile`, `avatar`, `cover`, `camera`, `upload`, `album`, `photo`, `pick` | Navigate to edit/profile flow; real picker/permission requires §6 | Medium/High |
+| `skip`, `optional`, `profile_setup`, `bio`, `nickname` | Optional profile setup; missing optional fields should use defaults/placeholders, not block account creation unless spec says required | Medium/High |
 | `settings`, `privacy`, `agreement`, `guideline`, `contact`, `about` | Open declared settings/legal/static screen; external WebView links require declared URL/scope | Medium/High |
 | `ok`, `confirm`, `done`, `submit`, `unlock`, `recharge` | Primary dialog/action button; bind to nearest popup or screen route | Low/High depending on target |
 | `login`, `apple`, `google`, `phone`, `email`, `register`, `logout` | UI flow only unless real auth is declared | High |
 | `pay`, `iap`, `storekit`, `coin`, `recharge`, `subscribe`, `vip`, `product` | UI only unless real payment/IAP is declared | High |
+| `package`, `pkg`, `price`, `balance`, `continue`, `wallet` | Wallet package grid and selected state; real purchase, transaction finish, and balance entry only when declared | High |
+| `quota`, `limit`, `free`, `次数`, `unlock_chat`, `chats_left` | UI/local quota unless real quota, billing, or reset policy is declared | High |
 | `ai`, `chat`, `message`, `call`, `video_call`, `voice`, `mic`, `speaker`, `end_call` | UI/local demo only unless real chat/AI/media permissions are declared | High |
+| `preview`, `play`, `pause`, `photo_picker`, `video_picker`, `media_delete` | Media picker preview and delete state; real picker/camera/file persistence only when declared | Medium/High |
+| `live`, `room`, `viewer`, `people`, `audience`, `watch` | Live room/card UI; local bundled video/comment demo only unless real live service is declared | Medium/High |
+| `read`, `article`, `story`, `soul`, `recommend` | Reading list/detail route; local/static content unless real CMS/API/AI generation is declared | Low/Medium |
+| `match`, `resonance`, `echo`, `pair`, `music`, `play`, `pause` | Local match/resonance card and local media play/pause when bundled media exists | Low/Medium |
 | `delete_account`, `deactivate`, `withdraw` | Require explicit spec; destructive behavior must be confirmation-gated | High |
 
 ## State Pairing
@@ -160,6 +192,8 @@ When names imply states, bind them as a single control instead of separate unrel
 - `like` + `liked`
 - `accept` + `reject` in the same row
 - `tab_x_normal` + `tab_x_selected`
+- `pkg_normal` + `pkg_selected`, `package_normal` + `package_selected`
+- `mic_on` + `mic_off`, `speaker_on` + `speaker_off`, `play` + `pause`
 
 If only one state exists, implement the missing state only with non-graphic UI primitives that fit the project style, such as tint, alpha, text, border, shadow, or background color changes. Do not create substitute icons, illustrations, textures, stickers, avatars, backgrounds, or decorative patterns. Otherwise record `缺 selected/normal 切图`.
 
@@ -185,12 +219,24 @@ Prefer these local behaviors when real services are not declared:
 
 - Like/favorite: toggle local state and count for the current session.
 - Follow/following: toggle local relationship and visible button/counts when a local social store exists.
+- Say Hi/greeting: local greeting confirmation is acceptable; if chat is relationship-gated, require follow/add-friend first and document the gate.
 - Report/block: present bottom sheet; block hides local content if a local store already supports filtering.
 - Delete content: confirmation dialog, then remove from local demo content store.
+- Notification/request cleanup: row-level ignore/dismiss removes only the notification/request row, updates badge and empty state, and must not remove the underlying user/content unless the spec says so.
 - Empty new account: empty social/chat/content lists unless the spec declares seeded demo data.
 - Test/demo account: richer seeded local data when the spec declares it.
 - Search/filter: local filtering if the list data is local; otherwise `待确认`.
+- Search history: recent-query chips may be local/session or persisted only when the project already uses local storage; clear buttons should affect search history, not source content.
+- Article/read screens: static/generated local reading content is acceptable when the spec says content can be demo/local; real AI generation, CMS, or remote feed must be explicit.
+- Live rooms: bundled/local video, fake viewer counts, local comments, and like animations are acceptable demo behavior; real streaming, presence, gifts, or moderation backend must be explicit.
+- Match/resonance/echo cards: local random or seeded pairing is acceptable when backed by local demo users; exclude blocked users and document reseed triggers when moderation exists.
 - AI/chat/video call: local demo state only; charges, free quota, timeout, permissions, and StoreKit require explicit spec.
+- Wallet/package selection: selecting a package is a local UI state; purchase loading must disable duplicate taps; success/failure/cancel must keep balance and labels consistent with the declared payment scope.
+- Media preview/delete: after picker success show a local preview and delete control; delete clears the runtime key/preview and restores the picker placeholder; picker cancel leaves state unchanged.
+- Video call demo: start timer/loading state, allow mic/speaker UI toggles, stop preview/timers on hangup, and document timeout/failure return path. Real RTC/audio routing/camera permissions require §6.
+- Optional profile setup: allow skip/default values only when the filename/spec indicates optional profile fields; do not infer optionality for required account credentials.
+- Profile statistic drilldowns: tapping Posts/Followers/Following can push local filtered lists when the project has a local user/content/social store; counts and row actions must sync back to profile cards.
+- Cross-screen store sync: when one mutation affects reused content, relationship, wallet, or chat state, update the source store first and refresh every listening screen/card/count from that source instead of patching only the tapped view.
 
 ## Completeness Output
 

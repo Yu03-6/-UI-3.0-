@@ -3,7 +3,7 @@ name: frontend-ui-from-spec
 description: >-
   Implements frontend UI from 架构需求.md and design assets. Use for
   design-to-code, UI restoration, cutout/assets import, pixel checklist,
-  lightweight engineering evidence, design-original-name screen inventory,
+  full screenshot matrix pixel QA, design-original-name screen inventory,
   asset-name driven component/popup/interaction blueprinting, local demo data,
   and AGENTS.md sync.
   Always use when 架构需求.md exists or the user asks to implement screens from
@@ -52,7 +52,7 @@ Before coding or editing UI files, do all of the following and write the result 
 1. Ensure `资源导入清单.md` and `像素还原清单.md` exist. If missing, create them from the project templates or the kit templates.
 2. Scan `架构需求.md` §2 design-original and runtime asset paths.
 3. Generate or repair `架构需求.md` §3 screen rows from design-original filenames.
-4. Mirror those rows into `像素还原清单.md` with explicit `界面名称/状态`, `开发状态=未开始`, `交互绑定=待绑定/待确认`, and `像素验收=未验收`.
+4. Mirror those rows into `像素还原清单.md` with explicit `界面名称/状态`, `开发状态=未开始`, `交互绑定=待绑定/待确认`, `截图状态=未截图`, `对比证据=未对比`, and `像素验收=未验收`.
 5. Scan allowed cutout/runtime assets and add rows to `资源导入清单.md` for button, entry, state, card, popup, sheet, tab, empty, background, and content-media resources, including `推断产物`, `推断交互`, `置信度`, and `绑定状态`.
 6. Add or repair `架构需求.md` §4.1/§4.2/§4.3 with de-duplicated component, popup, state-button, and interaction patterns when safe.
 
@@ -86,10 +86,16 @@ Run the project strictly in this order. Do not skip a stage or begin a later sta
 | 1. Spec and screen inventory | §3 screen rows and initial `像素还原清单.md` rows written | every known original is covered or marked non-screen/deferred |
 | 2. Asset planning/import | all eligible cutouts inventoried, runtime names assigned, imported/staged, and written to `资源导入清单.md` | no unlisted runtime visual resources are needed for P0 work |
 | 3. Interaction/component blueprint | §4.1/§4.2/§4.3 and resource blueprint rows written | component/popup/state/button patterns are classified explicit/inferred/待确认 |
-| 4. Page implementation | code uses only listed/imported resources | current screen has ledger rows and asset rows |
-| 5. Evidence and verification | pixel evidence, interaction binding, build/lint/test or skip reason | all touched screens have updated ledger rows |
+| 4. P0 page implementation | code uses only listed/imported resources | every P0 screen has ledger rows and asset rows |
+| 5. P0 screenshot matrix QA | target original, implementation screenshot, comparison evidence, and repair status written | every P0 page/state/dialog is screenshot-compared or explicitly deferred |
+| 6. P1 page implementation | code uses only listed/imported resources | P0 screenshot matrix has passed or deferred blockers are approved |
+| 7. P1 screenshot matrix QA | target original, implementation screenshot, comparison evidence, and repair status written | every P1 page/state/dialog is screenshot-compared or explicitly deferred |
+| 8. P2 page/state implementation | code uses only listed/imported resources | P1 screenshot matrix has passed or deferred blockers are approved |
+| 9. P2 screenshot matrix QA and final verification | full pixel evidence, interaction binding, build/lint/test or skip reason | all non-deferred screens have updated screenshot matrix rows |
 
 If a user asks to jump directly to implementation, still run stages 0-3 first and report what was written.
+
+Priority gates are blocking: do not start P1 implementation while any P0 row is `未截图`, `未对比`, or `需返修`; do not start P2 while any P1 row is `未截图`, `未对比`, or `需返修`. A row may be bypassed only when it is marked `延期` or `不可验收` with an explicit blocker and user-approved reason.
 
 ## Fast Workflow
 
@@ -100,18 +106,18 @@ If a user asks to jump directly to implementation, still run stages 0-3 first an
 5. Always read `screen-inventory-inference.md` before planning screens. Scan the design-original folder and generate/repair §3 screen inventory and `像素还原清单.md` rows from original filenames.
    Every pixel checklist row must include an explicit `界面名称/状态` aligned to §3 `页面/状态`; do not leave rows with only the original filename or status labels.
 6. Always read `interaction-inference.md` and `project-interaction-patterns.md` before UI coding. Treat asset naming and similar project button patterns as first-class sources for UI/local-demo component, popup, state, and button behavior.
-7. Inventory allowed cutout/runtime asset names, group state pairs and naming clusters, match Sweeli/hdxc-style button operation patterns where applicable, then produce and write a component/popup/interaction blueprint before coding a screen.
+7. Inventory allowed cutout/runtime asset names, group state pairs and naming clusters, match similar project button operation patterns where applicable, then produce and write a component/popup/interaction blueprint before coding a screen.
 8. Reconcile `架构需求.md` §10 change log against §3, §4.2, §4.3, §6, `AGENTS.md`, `资源导入清单.md`, and `像素还原清单.md`. Backfill missing interaction/component patterns from existing code or resource-list evidence when safe.
 9. Run readiness check. Report P0/P1/P2 gaps and patch the spec when safe. Missing manual §3 rows or per-button §4 text is not blocking when filenames/context give safe inferences.
 10. Sync `AGENTS.md` with project constraints, capability boundaries, screen inventory inference, naming inference rules, and any real capability changes recorded in §10.
-11. Implement screens in priority order, one screen/state at a time.
+11. Implement screens in priority order, one screen/state at a time, and finish the screenshot matrix for the current priority before moving to the next priority.
 12. Before each screen: verify original/cutout paths, register assets, identify route/entry, build inferred components/popups/stateful controls, and bind safe inferred interactions.
-13. After each screen: update `资源导入清单.md`, `像素还原清单.md`, and spec §10 when behavior was inferred.
+13. After each screen: update `资源导入清单.md`, `像素还原清单.md`, and spec §10 when behavior was inferred; then capture the required screenshot(s), compare against the target original(s), record the difference level, and repair until accepted or blocked.
    - `实现完成`: code, resources, constraints/layout are in place.
    - `交互已绑定`: explicit or low-risk inferred interactions are wired; unresolved actions are marked `待确认`.
-   - `像素验收通过`: engineering evidence is complete.
-12. Run available build/lint/test. Also run cheap source checks: no runtime original references, assets registered, layout helper used, interaction status recorded.
-13. Finish with changed files, verification, pixel evidence summary, inferred screens, inferred interactions, and remaining gaps.
+   - `像素验收通过`: engineering evidence and screenshot comparison evidence are complete.
+14. Run available build/lint/test. Also run cheap source checks: no runtime original references, assets registered, layout helper used, interaction status recorded, and no non-deferred screenshot matrix row is missing evidence.
+15. Finish with changed files, verification, screenshot matrix summary, inferred screens, inferred interactions, and remaining gaps.
 
 ## Readiness Check
 
@@ -125,7 +131,7 @@ Do not begin implementation until these are clear enough:
 - Global UI rules define layout scale, safe area, scrolling, fonts/colors, and popups.
 - Capability table states what is UI-only vs real.
 - Asset list has columns for inferred component/popup/state, inferred interaction, confidence, and binding status.
-- Pixel checklist has columns for implementation status, interaction binding status, pixel QA status, and engineering evidence.
+- Pixel checklist has columns for implementation status, interaction binding status, screenshot status, target original, implementation screenshot, comparison evidence, viewport/device, difference level, repair status, pixel QA status, and engineering evidence.
 - Acceptance and change log exist.
 - Existing §10 change-log rows are reflected in their declared landing sections and do not leave related §4.2/§4.3/resource/pixel/AGENTS entries as template placeholders.
 
@@ -204,8 +210,8 @@ Write the result into §3:
 Mirror the same rows into `像素还原清单.md` before implementation:
 
 ```markdown
-| 优先级 | 原稿文件 | 界面名称/状态 | 对应实现 | 开发状态 | 交互绑定 | 像素验收 | 工程证据/问题 |
-|---|---|---|---|---|---|---|---|
+| 优先级 | 原稿文件 | 界面名称/状态 | 对应实现 | 开发状态 | 交互绑定 | 截图状态 | 目标原稿 | 实现截图 | 对比证据 | 视口/设备 | 差异等级 | 返修状态 | 像素验收 | 工程证据/问题 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 ```
 
 The pixel checklist must name the user-facing screen/state. If the name is ambiguous, write `待确认：<filename stem>` and note why, instead of leaving `【由命名推断】` or an empty cell.
@@ -214,7 +220,7 @@ The pixel checklist must name the user-facing screen/state. If the name is ambig
 
 Never equate code completion with pixel acceptance.
 
-`像素验收通过` requires auditable engineering evidence in `像素还原清单.md`:
+`像素验收通过` requires auditable engineering evidence and full screenshot comparison evidence in `像素还原清单.md`:
 
 - route/entry
 - implementation file
@@ -222,9 +228,17 @@ Never equate code completion with pixel acceptance.
 - registered assets
 - 3-6 key element measurements
 - key interactions: asset/control, trigger, result, binding status
+- screenshot status for every page/dialog/state/critical variant
+- target original path or filename for each compared row
+- implementation screenshot path
+- comparison evidence path or written side-by-side/diff/manual review note
+- viewport/device, orientation, and state setup
+- difference level: `通过`, `轻微差异`, `需返修`, or `不可验收`
 - exceptions or `无例外`
 
-Screenshots, diffs, side-by-side comparison, and manual review are optional spot checks, not the default gate.
+Screenshots are mandatory for every distinct screen, dialog, state, and critical variant. Diffs, side-by-side comparison, or manual visual review notes are mandatory comparison evidence. Random spot checks are allowed only for repeated instances of the same component pattern after at least one representative instance has passed; they cannot replace per-screen/state screenshot coverage.
+
+Do not mark `像素验收通过` while screenshot status is `未截图`, comparison evidence is empty, or difference level is `需返修`. Fix the UI, recapture, and update the row before advancing to the next priority gate.
 
 ## Plan Format
 
@@ -241,6 +255,7 @@ Screenshots, diffs, side-by-side comparison, and manual review are optional spot
   Inferred components/popups: ...
   Inferred interactions: ...
   Pixel evidence: ...
+  Screenshot matrix: ...
   Verification: ...
 ```
 
@@ -260,9 +275,10 @@ Screenshots, diffs, side-by-side comparison, and manual review are optional spot
 - It inventories cutout names and produces component/popup/interaction blueprinting instead of waiting for §4 to name every button.
 - It imports/stages and records all eligible cutout resources during planning before page implementation.
 - It refuses to skip stage gates; a later phase begins only after earlier phase outputs are written.
+- It captures and records screenshots for every screen/state/dialog in the current priority before advancing to the next priority.
 - It refuses runtime use of design originals.
 - It refuses arbitrary self-made graphics and uses only project-provided cutouts/existing assets plus basic UI primitives.
 - It updates `资源导入清单.md` and `像素还原清单.md` as screens ship, including interaction binding status.
 - It separates `实现完成` from `像素验收通过`.
 - It separates explicit behavior, low-risk inferred behavior, and `待确认` behavior.
-- It does not claim pixel pass without engineering evidence.
+- It does not claim pixel pass without engineering evidence and screenshot comparison evidence.

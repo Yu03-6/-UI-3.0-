@@ -77,6 +77,13 @@ else
   warn "未检测到阶段顺序门禁：建议重新安装最新版套件，避免跳阶段执行"
 fi
 
+if [[ -f "$TARGET/.cursor/skills/frontend-ui-from-spec/SKILL.md" ]] \
+  && grep -q "screenshot matrix\\|全量截图\\|截图矩阵" "$TARGET/.cursor/skills/frontend-ui-from-spec/SKILL.md"; then
+  ok "全量截图矩阵门禁已安装"
+else
+  warn "未检测到全量截图矩阵门禁：建议重新安装最新版套件，避免只随机抽检截图"
+fi
+
 if [[ -f "$TARGET/.cursor/rules/frontend-ui-kit-bootstrap.mdc" ]] \
   && grep -q "First-run ledger gate" "$TARGET/.cursor/rules/frontend-ui-kit-bootstrap.mdc"; then
   ok "Bootstrap rule 含首轮清单门槛"
@@ -91,6 +98,13 @@ else
   warn "Bootstrap rule 未含规划资源导入门槛"
 fi
 
+if [[ -f "$TARGET/.cursor/rules/frontend-ui-kit-bootstrap.mdc" ]] \
+  && grep -q "screenshot matrix\\|全量截图\\|截图矩阵" "$TARGET/.cursor/rules/frontend-ui-kit-bootstrap.mdc"; then
+  ok "Bootstrap rule 含全量截图矩阵门槛"
+else
+  warn "Bootstrap rule 未含全量截图矩阵门槛"
+fi
+
 echo ""
 echo "── 需求与交付文档 ──"
 [[ -f "$TARGET/架构需求.md" ]] && ok "架构需求.md" || warn "缺少 架构需求.md（Rule 仅在打开/引用该文件时强触发）"
@@ -101,6 +115,16 @@ if [[ -f "$TARGET/像素还原清单.md" ]]; then
     ok "像素清单为 3.0 实现/交互/像素验收格式"
   else
     warn "像素清单可能仍是旧版：建议增加「开发状态 / 交互绑定 / 像素验收 / 工程证据/问题」列"
+  fi
+  if grep -q "截图状态" "$TARGET/像素还原清单.md" \
+    && grep -q "目标原稿" "$TARGET/像素还原清单.md" \
+    && grep -q "实现截图" "$TARGET/像素还原清单.md" \
+    && grep -q "对比证据" "$TARGET/像素还原清单.md" \
+    && grep -q "差异等级" "$TARGET/像素还原清单.md" \
+    && grep -q "返修状态" "$TARGET/像素还原清单.md"; then
+    ok "像素清单包含全量截图矩阵字段"
+  else
+    warn "像素清单缺少全量截图矩阵字段：建议增加「截图状态 / 目标原稿 / 实现截图 / 对比证据 / 视口/设备 / 差异等级 / 返修状态」"
   fi
   if grep -q "界面名称/状态\\|页面/状态" "$TARGET/像素还原清单.md"; then
     ok "像素清单包含界面名称/状态列"
@@ -157,6 +181,20 @@ if [[ -f "$TARGET/架构需求.md" ]]; then
     ok "键盘/输入栏避让已有文档证据"
   else
     warn "未发现键盘/输入栏避让证据：消息发送栏、评论栏、搜索/表单页需记录不被系统键盘遮挡"
+  fi
+
+  if grep -q "全量截图\\|截图矩阵\\|目标原稿.*实现截图\\|实现截图.*对比证据" "$TARGET/架构需求.md" \
+    && { [[ ! -f "$TARGET/像素还原清单.md" ]] || grep -q "截图状态\\|对比证据\\|差异等级" "$TARGET/像素还原清单.md"; }; then
+    ok "全量截图矩阵已有文档证据"
+  else
+    warn "未发现全量截图矩阵证据：每个页面/弹窗/状态需记录目标原稿、实现截图、对比证据、差异等级和返修状态"
+  fi
+
+  if grep -q "默认不要求截图\\|可选抽检\\|截图/diff.*可选\\|spot-check" "$TARGET/架构需求.md" \
+    || { [[ -f "$TARGET/像素还原清单.md" ]] && grep -q "默认不要求截图\\|可选抽检\\|截图/diff.*可选\\|spot-check" "$TARGET/像素还原清单.md"; }; then
+    warn "检测到旧截图抽检口径：请改为全量截图矩阵验收"
+  else
+    ok "未发现旧截图抽检口径"
   fi
 
   if [[ -f "$TARGET/像素还原清单.md" ]] && grep -q "^|.*原稿文件.*页面/状态" "$TARGET/架构需求.md"; then
@@ -234,14 +272,17 @@ if [[ -f "$TARGET/架构需求-模版.md" && -f "$TARGET/README.md" ]]; then
   shopt -s nullglob
   CASE_FILES=("$TARGET"/案例-*.md)
   shopt -u nullglob
-  if [[ ${#CASE_FILES[@]} -eq 4 \
+  if [[ ${#CASE_FILES[@]} -eq 7 \
     && -f "$TARGET/案例-hdxc架构需求.md" \
     && -f "$TARGET/案例-hdxc资源导入清单.md" \
     && -f "$TARGET/案例-hdxc像素还原清单.md" \
-    && -f "$TARGET/案例-hdxcAGENTS.md" ]]; then
-    ok "套件案例仅保留 hdxc 四件套"
+    && -f "$TARGET/案例-hdxcAGENTS.md" \
+    && -f "$TARGET/案例-qxxq可复用规则复盘.md" \
+    && -f "$TARGET/案例-lygl可复用规则复盘.md" \
+    && -f "$TARGET/案例-clsj可复用规则复盘.md" ]]; then
+    ok "套件案例包含 hdxc 四件套与 qxxq/lygl/clsj 规则复盘"
   else
-    warn "套件案例应仅保留 hdxc 四件套：案例-hdxc架构需求/资源导入清单/像素还原清单/AGENTS"
+    warn "套件案例应包含 hdxc 四件套与 qxxq/lygl/clsj 规则复盘：案例-hdxc架构需求/资源导入清单/像素还原清单/AGENTS + 案例-qxxq可复用规则复盘 + 案例-lygl可复用规则复盘 + 案例-clsj可复用规则复盘"
   fi
   OLD_CASE_A="案例-lg""dz"
   OLD_CASE_B="案例-ds""sj"
@@ -261,9 +302,10 @@ echo "  4. 屏幕清单：设计原稿命名可生成 §3 和像素清单初始�
 echo "  5. 蓝图生成：切图命名可生成组件/弹窗/状态按钮/交互蓝图；真实登录/支付/AI/媒体/后端能力仍以 §6 为准"
 echo "  6. 首轮门槛：第一遍运行必须先回写资源清单和像素清单，不能只改代码"
 echo "  7. 资源门槛：规划阶段必须先导入/整理全部可用切图并写入资源清单"
-echo "  8. 阶段门槛：按安装/读取 → 屏幕清单 → 资源整理 → 交互蓝图 → 页面实现 → 证据验收顺序执行"
+echo "  8. 阶段门槛：按安装/读取 → 屏幕清单 → 资源整理 → 交互蓝图 → P0 实现 → P0 全量截图对比 → P1 实现 → P1 全量截图对比 → P2 实现 → P2 全量截图对比 → 最终验收顺序执行"
 echo "  9. 资源约束：页面图像只能使用 §2 可用切图或现有 Assets；缺图登记待补，不自制替代图"
-echo "  10. 按钮模式：Sweeli/hdxc 项目按钮操作模式可辅助补齐常见交互"
+echo "  10. 截图矩阵：每个页面/弹窗/状态必须记录目标原稿、实现截图、对比证据、差异等级和返修状态"
+echo "  11. 按钮模式：Sweeli/hdxc/qxxq/lygl/clsj 项目按钮操作模式可辅助补齐常见交互"
 echo ""
 
 if [[ $FAIL -eq 0 ]]; then
