@@ -1,6 +1,6 @@
 # Project Button Interaction Patterns
 
-Use this reference after `interaction-inference.md` and before coding screens. It distills reusable button/action behavior from the Sweeli/TpCake, hdxc, qxxq, lygl, and clsj projects. Treat these as interaction templates, not product truth: `架构需求.md` §4/§6 and existing project code still override them.
+Use this reference after `interaction-inference.md` and before coding screens. It distills reusable button/action behavior from the Sweeli/TpCake, hdxc, qxxq, lygl, clsj, and qsxq projects. Treat these as interaction templates, not product truth: `架构需求.md` §4/§6 and existing project code still override them.
 
 ## How To Apply
 
@@ -30,7 +30,8 @@ Use this reference after `interaction-inference.md` and before coding screens. I
 | Optional profile step | `skip`, `optional`, `avatar`, `nickname`, `bio`, profile setup screen | allow account creation with defaults only when spec/original says optional; optional media can be placeholder | Medium/High if real account |
 | Apple login | `apple`, `sign_with_apple` | only real `ASAuthorizationController` when §6 says real; otherwise UI-only | High |
 | Logout | `logout`, `log_out` | confirm dialog, clear session, return to auth root | Medium/High |
-| Delete account | `delete_account` | confirm; block demo/test account if required; clear local account only when §6 says so | High |
+| Delete account | `delete_account` | confirm; clear local account only when §6 says so; persist a durable deleted-account marker keyed by account identity and return to auth root | High |
+| Deleted-account login intercept | `login`, `apple`, `email` + deleted marker | before authenticating, check the persisted deleted-account marker and block/reject re-login of that account with a clear message; cleared only by a declared reset path (e.g. reinstall) | High |
 
 ## Cards, Social, And Moderation
 
@@ -56,6 +57,7 @@ Use this reference after `interaction-inference.md` and before coding screens. I
 | Clear all chats | `clear_all`, `delete_all` | confirm dialog; delete local conversations; reset badge and empty state | destructive scope |
 | Swipe delete chat | table swipe delete | delete conversation row from local store | badge/list sync |
 | AI chat send | `ai`, `send`, `message` | append user message and local/template reply; apply free quota/coin gate only if §6 says so | fee/free quota, insufficient balance path |
+| AI local reply engine | `ai`, `reply`, keyword/topic phrase banks | keyword/topic-matched prefab replies with generic fallback; optional multi-bubble reply with short delay; avoid repeating last N replies; conversation session-scoped with seeded welcome | reply source, anti-repeat, pacing, per-message cost/quota gate, session reset boundary |
 | AI role card | `ai`, `role`, `portrait`, `hot`, `chat_btn` | push AI chat for selected role; use local/template persona only if no model API is declared | role id, local reply boundary, balance/free quota if present |
 | AI quota exhausted | `quota`, `limit`, `free`, `次数`, `chats left`, unlock chat | present quota/usage exhausted popup; unlock/recharge only when §6 declares cost/reset policy | reset scope, billing boundary |
 
@@ -99,6 +101,12 @@ Use this reference after `interaction-inference.md` and before coding screens. I
 | Domain store mutation | `contentChanged`, `socialChanged`, `walletChanged`, `chatChanged`, `profileChanged`, observable/store events | mutate the source store, then notify/listen so repeated cards, counters, badges, and empty states refresh from one source | affected screens listed, no one-off label patching |
 | Block filters content | `block`, `blacklist`, content/user/chat lists | add target to local blacklist; remove from following/friends if local store models that; hide blocked author from feeds, comments, chats, notifications, and recommendations | unblock path, empty states, current detail dismissal |
 | Account data tier | test/demo account vs new account flags | seeded demo data only when declared; new account starts with platform/public content and empty private/social/chat lists | §6 declares persistence and reset rules |
+| Session-scoped store lifecycle | in-memory store/singleton, `reset()`, login/logout hooks | account-private state lives only for the current login; survives in-login navigation; resets on logout/re-login; logout clears every declared store | default to session-scoped unless §6 declares relaunch persistence; no leaked state across accounts |
+| Reset vs seed on login | `reset()`, `seedForNewUser()`, `seedForTestAccount()` | new account that needs default/welcome content (e.g. AI greeting) must be seeded on login, not merely reset; test account re-seeds rich demo | which method each login path calls; welcome/default content actually appears |
+| Thread-keyed session content | `threadId`, `peerId`, conversation/comment store | chat messages and comment threads kept in a store keyed by thread/peer so leaving and returning restores them; VC-local arrays only for view-only ephemeral state | recovery after back-navigation; one store shape for chat + comments |
+| Public vs account-private split | public/seed feed vs my-posts/social/wallet/chat | public/shared content visible across accounts and filtered at read time; account-private reset/seeded per login | no mixing; blacklist filtering applied on read |
+| Irreversible flag persistence | `UserDefaults`, deleted-account marker, transaction-id de-dup | a single durable flag may survive relaunch even when general data is session-scoped | does not imply general data persistence; scope of the flag is explicit |
+| Deleted-account marker + login gate | `delete_account` write + login check, keyed by email/Apple id/account id | persist deleted marker on deletion; every login path checks it before auth and blocks re-login; cleared only by declared reset path | survives relaunch; not cleared on logout/login; clear message on blocked login |
 
 ## Search, Reading, Match, Live
 
@@ -138,6 +146,7 @@ Use this reference after `interaction-inference.md` and before coding screens. I
 - PHPicker/camera/microphone/AVCapture/WebView external links unless §6 declares the system capability and failure/cancel path.
 - AI billing/free quota/model API unless §6 declares whether it is UI-only, local template, or real.
 - AI/chat quota reset, paid unlock, or usage persistence unless §6 declares the rule.
+- Relaunch-surviving or cross-account data persistence (treat local state as session-scoped/reset-on-login) unless §6 declares real account-scoped persistence.
 - Account deletion, backend report/block, remote moderation, or API writes unless §6 declares scope.
 
 ## Output Shape

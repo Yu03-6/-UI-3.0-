@@ -86,6 +86,7 @@ chmod +x install-to-project.sh verify-kit-install.sh
 ├── 案例-qxxq可复用规则复盘.md        ← qxxq 完成项目抽象出的通用字典补充案例
 ├── 案例-lygl可复用规则复盘.md        ← lygl 完成项目抽象出的通用字典补充案例
 ├── 案例-clsj可复用规则复盘.md        ← clsj 完成项目抽象出的通用字典补充案例
+├── 案例-qsxq可复用规则复盘.md        ← qsxq 完成项目抽象出的持久化/会话生命周期等通用字典补充案例
 └── .cursor/
     ├── rules/
     └── skills/frontend-ui-from-spec/

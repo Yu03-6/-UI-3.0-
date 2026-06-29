@@ -99,6 +99,20 @@ If a filename contains both a P0 root and a state marker, keep the root page P0 
 - Keep variant suffixes as state names: `AI 余额不足弹窗`, `发布成功`, `视频聊天-失败`, `列表空态`.
 - For numbered variants (`视频聊天.png`, `视频聊天-2.png`), group them under one page if they share layout/state; write the variant in notes.
 - If two files differ only by device size, mark one row with responsive/short-screen note rather than duplicate screens.
+- Same-page sub-tab / selected-state variants (e.g. two originals that differ only by which in-page segment is active) are **state rows of one page**, not separate screens. Keep one page row and add a state row (`<page>-<segment>选中态`) pointing at the same implementation file.
+
+## Screens Without A Dedicated Original
+
+A screen can be required even when no single original is named for it. Infer it (and mark `待确认`) when both a cutout cluster and a structural frame imply it:
+
+- A reused control cluster plus a layout frame (e.g. a 1:1 chat list cluster plus a bottom input-bar frame) implies a conversation page even if only a sibling screen (AI chat) has an original.
+- An entry/route that must land somewhere (a "recent chats" row, a "start chat" button, a statistic that drills into a list) implies a destination page.
+
+For such rows:
+
+- Keep the exact `原稿文件` cell as `（无独立原稿）` and put the inference basis in `备注`/evidence.
+- Set `界面名称/状态` to the user-facing name with a `待确认：` prefix when ambiguous, and name the sibling screen whose layout it reuses.
+- Do not run pixel acceptance against a missing original; mark it layout-by-reference and defer pixel QA or compare against the sibling screen, recording the exception.
 
 ## Entry/Trigger Inference
 

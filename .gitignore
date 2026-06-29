@@ -1,1 +1,18 @@
+# Docs & agent tooling (local only, not for GitHub)
+*.md
+*.txt
+.cursor/
+
+# Frontend UI kit (local only)
+前端UI开发套件/
+前端UI开发套件3.0交互补全版（未实验）/
+
+# Design originals (local reference; runtime assets live in qsxq/Assets.xcassets)
+项目设计/
+
+# Xcode / CocoaPods
+Pods/
+*.xcuserstate
+xcuserdata/
+DerivedData/
 .DS_Store

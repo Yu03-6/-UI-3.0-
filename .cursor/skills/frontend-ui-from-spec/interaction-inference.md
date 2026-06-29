@@ -60,6 +60,7 @@ Do not stop at "button has a tap handler." For every inferred interaction patter
 | Cross-screen sync | Which screens refresh? | Home/Edit/Profile cards, request badge, wallet labels, blacklist, empty states |
 | Failure/cancel path | What happens on cancel or failure? | validation toast, dismiss picker, StoreKit failure, WebView error, permission denied |
 | Capability boundary | Is the result local, system, or backend? | UI-only, local store, Apple auth, StoreKit, PHPicker, camera, WebView, API |
+| Persistence scope | How long does the mutated state live? | view-only (lost on leave), session-scoped (resets on logout/relogin), account-scoped persisted (survives relaunch), public/shared seed, irreversible flag |
 | Evidence | Where is it documented? | §4.2/§4.3 pattern, §6 if real, resource row, pixel evidence, §10 if changed |
 
 Mark an interaction `已绑定` only when trigger, result, and local/UI state are wired. Use `已绑定但受限` when UI is wired but a real capability is partial or explicitly scoped, such as camera preview without RTC or local AI reply without model API. Use `待确认` when preconditions, real capability, or failure behavior are not specified.
@@ -93,6 +94,7 @@ Use this taxonomy before implementation and when auditing an existing project:
 | Media preview | `preview`, `play`, `pause`, `delete`, `photo_picker`, `video_preview` | picker cancel, preview display, play/pause, delete resets selection, required-field validation | Medium/High |
 | Notification/request cleanup | `notification`, `request`, `clear`, `ignore`, `dismiss`, `accept` | remove local row or clear list, refresh badge/empty state, preserve source content unless destructive scope is explicit | Medium |
 | Cross-screen store sync | `NotificationCenter`, `EventBus`, `store`, `observable`, `contentChanged`, `socialChanged`, `walletChanged`, `chatChanged` | mutation posts domain event; all reused cards/lists/counts refresh from source store | Medium |
+| Data persistence/lifecycle | `store`, `session`, `reset`, `seed`, `login/logout`, `UserDefaults`, account scope, `threadId`/`peerId` keys | scope chosen (view/session/account/public/flag); reset vs seed on login; session content kept in store keyed by thread/peer; logout clears declared stores | Medium |
 | Legal/settings/account | `settings`, `privacy`, `agreement`, `contact`, `logout`, `delete_account` | static/WebView URL, error state, confirmation, test-account exception, destructive scope | Medium/High |
 | Optional registration profile | `skip`, `optional`, `profile`, `avatar`, `name`, `bio` | optional field defaults, skip/create route, local profile persistence, validation only for required fields | Medium/High if real account |
 | Empty/loading/error | `empty`, `loading`, `error`, `badge`, `99+` | data condition, retry/primary action, badge hide/show, stale state cleanup | Low/Medium |
@@ -143,7 +145,7 @@ tab_home_sel
 | `live`, `room`, `viewer`, `people`, `audience` | Live room/list surface | Use bundled/local media or placeholder only when allowed; comments/likes local unless backend/live service is declared | Medium/High |
 | `read`, `article`, `story`, `soul`, `recommend` | Reading/list-detail surface | Generate local list/detail UI from provided/static content; real content API or AI generation requires §6 | Low/Medium |
 | `match`, `resonance`, `echo`, `pair`, `music` | Match/resonance card | Seed or rotate local pair/card; exclude blocked users if social store exists; music play/pause only if local media exists | Low/Medium |
-| `delete_account`, `deactivate`, `withdraw` | Account destructive action | Require §6 explicit behavior and confirmation | High |
+| `delete_account`, `deactivate`, `withdraw` | Account destructive action | Require §6 explicit behavior and confirmation; on delete, persist a durable deleted-account marker keyed by account identity and intercept it at every login before authenticating | High |
 | `logout`, `log_out`, `sign_out` | Session action | Confirm or direct return to auth root according to spec; clear only declared session state | Medium/High |
 
 ## Name Dictionary
@@ -178,7 +180,7 @@ tab_home_sel
 | `live`, `room`, `viewer`, `people`, `audience`, `watch` | Live room/card UI; local bundled video/comment demo only unless real live service is declared | Medium/High |
 | `read`, `article`, `story`, `soul`, `recommend` | Reading list/detail route; local/static content unless real CMS/API/AI generation is declared | Low/Medium |
 | `match`, `resonance`, `echo`, `pair`, `music`, `play`, `pause` | Local match/resonance card and local media play/pause when bundled media exists | Low/Medium |
-| `delete_account`, `deactivate`, `withdraw` | Require explicit spec; destructive behavior must be confirmation-gated | High |
+| `delete_account`, `deactivate`, `withdraw` | Require explicit spec; destructive behavior must be confirmation-gated; persist a durable deleted-account marker and intercept/block re-login of that account | High |
 
 ## State Pairing
 
@@ -237,6 +239,44 @@ Prefer these local behaviors when real services are not declared:
 - Optional profile setup: allow skip/default values only when the filename/spec indicates optional profile fields; do not infer optionality for required account credentials.
 - Profile statistic drilldowns: tapping Posts/Followers/Following can push local filtered lists when the project has a local user/content/social store; counts and row actions must sync back to profile cards.
 - Cross-screen store sync: when one mutation affects reused content, relationship, wallet, or chat state, update the source store first and refresh every listening screen/card/count from that source instead of patching only the tapped view.
+
+## Data Persistence And Lifecycle Scope
+
+Every piece of mutable state has a lifecycle scope. Deciding the scope is part of interaction completeness, not an afterthought. Do not assume "本地持久化/local persistence" means "survives relaunch" — by default infer the **narrowest scope that satisfies the visible behavior**, and only widen it when `架构需求.md` §6 declares real persistence.
+
+| Scope | Where it lives | Lifetime | Default candidates |
+|---|---|---|---|
+| View-only ephemeral | The view/controller | Lost when leaving the screen | scroll offset, unsent draft text, transient highlight |
+| Session-scoped in-memory | A shared store/singleton for the current login | Survives navigation within one login; resets on logout/re-login | chat/AI messages, comments, local likes, follow/friend graph, wallet balance changes, my-posts, request list |
+| Account-scoped persisted | Disk keyed by account id | Survives app relaunch, isolated per account | only when §6 explicitly declares real local persistence per account |
+| Public/shared seed | A read-only seed source visible to all accounts | Per build; not account-private | platform/public feed posts, default users, seeded AI welcome |
+| Irreversible flag | Durable storage (e.g. UserDefaults) | Survives relaunch even when general data is session-scoped | account-deleted marker, IAP transaction-id de-dup, one-time onboarding seen |
+
+Reusable rules:
+
+- **Default "本地数据/local demo data" to session-scoped in-memory**, not relaunch-persistent. Each login resets account state unless §6 declares account-scoped persistence. A 1:1 chat / AI conversation that "saves during this login and resets after re-login" is the canonical session-scoped case.
+- **`reset()` is not `seed()`.** Login must choose deliberately: `reset()` (empty), `seedForNewUser()` (default/welcome content such as an AI greeting), or `seedForTestAccount()` (rich demo data). A new account that should show default/welcome content must be *seeded* on login, not merely reset, or the welcome state silently disappears.
+- **Content that must survive back-navigation within a login belongs in a shared session store, not a view controller's local array.** If returning to a screen (post detail, place discussion, chat) must restore the user's own messages/comments, key them by a stable `threadId`/`peerId` in the store. A VC-local array is correct only for view-only ephemeral state.
+- **Unify same-shaped session conversations under one store.** Chat messages and comment threads are the same lifecycle; route both through one thread/peer-keyed session store so lifetime, reset, and recovery behave identically.
+- **Separate public/shared from account-private.** Public/seed content is visible across accounts and filtered at read time (e.g. by blacklist); account-private state (my-posts, social graph, wallet, chats) is reset/seeded per login. Do not mix the two in one mutable list.
+- **Irreversible flags may persist even when everything else is session-scoped.** A delete-account marker that blocks re-login, or a transaction-id set for purchase de-dup, may use durable storage; this does not make the rest of the data relaunch-persistent.
+- **Account deletion must persist a deleted-account identifier and login must intercept it.** When §6 authorizes account deletion, the delete flow writes a durable marker keyed by the account identity (email / Apple user id / account id) to durable storage, then returns to the auth root. Every login path (email, Apple, etc.) must check this marker *before* authenticating and block/reject re-login of a deleted account with a clear message. This marker is irreversible-flag persistence: it survives relaunch even when general data is session-scoped, and is cleared only by a declared reset path (e.g. reinstall) — never silently on logout/login.
+- Logout must clear every session-scoped store it declared; leaving one un-reset leaks the previous account's data into the next login.
+
+When the spec's capability table claims "real persistence" but the code/behavior only keeps state for one login, treat the real model as session-scoped and record the discrepancy in §10 rather than inferring relaunch persistence.
+
+## Local AI / Template Reply Detail
+
+When §6 declares AI is UI-only/local-template (no model API), a believable local reply engine has reusable completeness dimensions. Record the dimensions, never project-specific phrase counts, themes, costs, or delays.
+
+| Dimension | Required judgment |
+|---|---|
+| Trigger/gate | send on non-empty input; apply per-message cost or free-quota gate only when §6 declares it |
+| Reply source | keyword/topic-matched prefab phrases by theme; fallback generic reply when no keyword matches |
+| Anti-repeat | avoid repeating the last N replies so the demo does not loop obviously |
+| Pacing | optional multi-bubble reply with a short delay to feel conversational |
+| Balance/quota path | on insufficient balance/quota, route to recharge/unlock per §6, do not send |
+| Persistence | conversation is session-scoped by default (resets on re-login) unless §6 says otherwise; seed a welcome message on login for new accounts |
 
 ## Completeness Output
 
