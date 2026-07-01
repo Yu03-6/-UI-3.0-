@@ -89,10 +89,11 @@ Use this reference after `interaction-inference.md` and before coding screens. I
 | Pattern | Signals | Default Operation | Risk |
 |---|---|---|---|
 | Video call entry | `video_chat`, `call`, `video` | push/present call UI | High if real media |
+| Connecting-state layout | `call`, `remote`, `local`, `avatar`, `loading` | remote/peer frame = peer placeholder/grey avatar + loading indicator below (no fake remote feed); local/self frame = real or placeholder camera preview; call timer centered above bottom bar | Medium/High |
 | Local preview | `camera`, `flip` | use `AVCaptureSession` only if §6 says media real/allowed | High |
 | Mic/speaker toggle | `mic_on/off`, `speaker_on/off` | toggle local button state; real audio route/mute requires §6 | High |
 | End call | `end_call`, `hangup` | stop timers/session and return to chat | Medium/High |
-| Timeout | call not connected | after specified seconds return and show dialog | Medium/High |
+| Timeout / not connected | call not connected | after the spec-defined timeout (commonly 8–10s) stop preview/timers, auto-pop to previous page, then present a "not connected" popup using the project's unified popup shell with a default English copy like "Call not connected, please try again later" | Medium/High |
 
 ## Cross-Screen Sync
 

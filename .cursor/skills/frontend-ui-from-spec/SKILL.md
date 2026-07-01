@@ -13,27 +13,6 @@ disable-model-invocation: false
 
 # Frontend UI From Spec
 
-## Installation Check
-
-Cursor only loads skills from the **workspace root** `.cursor/skills/`, not from nested kit folders.
-
-Required at project root:
-
-```text
-.cursor/skills/frontend-ui-from-spec/SKILL.md
-.cursor/skills/frontend-ui-from-spec/screen-inventory-inference.md
-.cursor/skills/frontend-ui-from-spec/interaction-inference.md
-.cursor/skills/frontend-ui-from-spec/project-interaction-patterns.md
-.cursor/rules/frontend-ui-kit-bootstrap.mdc
-```
-
-If missing, stop and tell the user:
-
-```bash
-cd 前端UI开发套件3.0交互补全版（未实验） && ./install-to-project.sh /path/to/project
-./verify-kit-install.sh /path/to/project
-```
-
 ## Scope And Evidence Sources
 
 1. `架构需求.md` — project scope, capability boundaries, main routes, and explicit overrides. It does not need to list every screen or every button when design originals and naming context exist.
@@ -54,7 +33,7 @@ Before coding or editing UI files, do all of the following and write the result 
 3. Generate or repair `架构需求.md` §3 screen rows from design-original filenames.
 4. Mirror those rows into `像素还原清单.md` with explicit `界面名称/状态`, `开发状态=未开始`, `交互绑定=待绑定/待确认`, `截图状态=未截图`, `对比证据=未对比`, and `像素验收=未验收`.
 5. Scan allowed cutout/runtime assets and add rows to `资源导入清单.md` for button, entry, state, card, popup, sheet, tab, empty, background, and content-media resources, including `推断产物`, `推断交互`, `置信度`, and `绑定状态`.
-6. Add or repair `架构需求.md` §4.1/§4.2/§4.3 with de-duplicated component, popup, state-button, and interaction patterns when safe.
+6. If `架构需求.md` §4 (main navigation/interaction) is empty or only a placeholder, synthesize the §4 main navigation map first from §3 screen entries/triggers, tab roots, auth/cold-start flow, and standard cross-page transitions. Only then add or repair §4.1/§4.2/§4.3 with de-duplicated component, popup, state-button, and interaction patterns when safe. Do not skip §4 because §4.1+ exist — §4.2 inferred interactions do not replace the §4 main navigation map.
 
 If any required checklist/spec file cannot be written, stop and report the blocker. Do not continue with code-only implementation.
 
@@ -85,7 +64,7 @@ Run the project strictly in this order. Do not skip a stage or begin a later sta
 | 0. Setup/readiness | Skill/rules loaded; `架构需求.md` readable; docs writable | verify/install blockers resolved |
 | 1. Spec and screen inventory | §3 screen rows and initial `像素还原清单.md` rows written | every known original is covered or marked non-screen/deferred |
 | 2. Asset planning/import | all eligible cutouts inventoried, runtime names assigned, imported/staged, and written to `资源导入清单.md` | no unlisted runtime visual resources are needed for P0 work |
-| 3. Interaction/component blueprint | §4.1/§4.2/§4.3 and resource blueprint rows written | component/popup/state/button patterns are classified explicit/inferred/待确认 |
+| 3. Interaction/component blueprint | §4 main navigation map (auto-filled when empty) written first, then §4.1/§4.2/§4.3 and resource blueprint rows | §4 main routes exist and component/popup/state/button patterns are classified explicit/inferred/待确认 |
 | 4. P0 page implementation | code uses only listed/imported resources | every P0 screen has ledger rows and asset rows |
 | 5. P0 screenshot matrix QA | target original, implementation screenshot, comparison evidence, and repair status written | every P0 page/state/dialog is screenshot-compared or explicitly deferred |
 | 6. P1 page implementation | code uses only listed/imported resources | P0 screenshot matrix has passed or deferred blockers are approved |
@@ -106,7 +85,7 @@ Priority gates are blocking: do not start P1 implementation while any P0 row is 
 5. Always read `screen-inventory-inference.md` before planning screens. Scan the design-original folder and generate/repair §3 screen inventory and `像素还原清单.md` rows from original filenames.
    Every pixel checklist row must include an explicit `界面名称/状态` aligned to §3 `页面/状态`; do not leave rows with only the original filename or status labels.
 6. Always read `interaction-inference.md` and `project-interaction-patterns.md` before UI coding. Treat asset naming and similar project button patterns as first-class sources for UI/local-demo component, popup, state, and button behavior.
-7. Inventory allowed cutout/runtime asset names, group state pairs and naming clusters, match similar project button operation patterns where applicable, then produce and write a component/popup/interaction blueprint before coding a screen.
+7. Before §4.1/§4.2/§4.3, apply the **Main Navigation (§4) Auto-Fill Rule**: when §4 is empty, synthesize and write the §4 main navigation map from §3 entries, tab roots, and standard flow first. Then inventory allowed cutout/runtime asset names, group state pairs and naming clusters, match similar project button operation patterns where applicable, and produce and write a component/popup/interaction blueprint before coding a screen.
 8. Reconcile `架构需求.md` §10 change log against §3, §4.2, §4.3, §6, `AGENTS.md`, `资源导入清单.md`, and `像素还原清单.md`. Backfill missing interaction/component patterns from existing code or resource-list evidence when safe.
 9. Run readiness check. Report P0/P1/P2 gaps and patch the spec when safe. Missing manual §3 rows or per-button §4 text is not blocking when filenames/context give safe inferences.
 10. Sync `AGENTS.md` with project constraints, capability boundaries, screen inventory inference, naming inference rules, and any real capability changes recorded in §10.
@@ -128,6 +107,7 @@ Do not begin implementation until these are clear enough:
 - Screen/state inventory covers pages, variants, popups, loading/empty/error states. It may be generated from design-original filenames using `screen-inventory-inference.md`.
 - Route/entry is known for P0 screens.
 - Interaction policy is clear enough: §4 explicit overrides, §4.1 naming inference setting, or a safe default of naming-driven low-risk/local-demo inference.
+- Main navigation (§4) exists or will be auto-filled: if §4 is empty, generate the §4 main navigation map from §3 entries before §4.1 blueprinting; do not skip it and do not treat §4.2 inferred interactions as a replacement.
 - Global UI rules define layout scale, safe area, scrolling, fonts/colors, and popups.
 - Capability table states what is UI-only vs real.
 - Asset list has columns for inferred component/popup/state, inferred interaction, confidence, and binding status.
@@ -185,6 +165,36 @@ Do not silently add behavior. Every inferred action must be visible in `资源�
 When the same interaction appears repeatedly, record it once as a pattern and put per-instance proof in `资源导入清单.md` / `像素还原清单.md`. Split into separate rows only when trigger result, ownership rule, risk level, or capability boundary differs.
 
 If `资源导入清单.md` already contains component/popup blueprints or bound interactions while `架构需求.md` §4.2/§4.3 still contains only placeholder rows, backfill §4.2/§4.3 with de-duplicated patterns before coding further.
+
+## Main Navigation (§4) Auto-Fill Rule
+
+`架构需求.md` §4 is the main navigation/interaction map (cross-page routes and main flow). Many users intentionally leave it empty and expect the AI to derive it. Do not skip it: §4.1/§4.2/§4.3 are naming-derived per-button blueprints and **do not** substitute the §4 main navigation map. A missing §4 is the common cause of missing main-tab/navigation behavior in the delivered app.
+
+When §4 is empty, a placeholder, or `仅展示，无业务跳转` is not explicitly chosen, generate and write §4 **before** §4.1, during the Interaction/component blueprint stage. Derive it from:
+
+1. `架构需求.md` §6 capability boundaries and any explicit §4 rows already present.
+2. Existing app routes/tab controllers when code exists.
+3. §3 screen rows and their `入口/触发` column (each entry/trigger implies one §4 route).
+4. Standard cross-page flow patterns and `project-interaction-patterns.md`.
+
+Cover at minimum (when the screens exist in §3):
+
+- Cold start → splash/launch → auth root or main tab depending on login state.
+- Login selection / sign in / register / optional profile → main tab; logout → auth root.
+- Main tab switching across every tab root, plus any central/primary action (e.g. publish) if present.
+- Each P0/P1 screen's primary entry and its back/close/dismiss destination.
+- Card/avatar/list-row → detail/profile/list drilldown, and statistic → filtered list.
+- Popups/sheets reached from a main action (publish confirm/success, paywall, report/block) as a route result.
+- Global back/close behavior for all push pages and overlays.
+
+Write it in the §4 shape and keep per-button detail in §4.2:
+
+```markdown
+| 入口 | 触发 | 结果 | 返回/关闭 | 备注 |
+|---|---|---|---|---|
+```
+
+Mark inferred routes with confidence and `待确认` when an entry or destination is ambiguous. Record the auto-fill in §10 when it fills a previously empty §4. Only skip §4 generation when the user explicitly declared static-only UI.
 
 ## Screen Inventory Inference Rule
 

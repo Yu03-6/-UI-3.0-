@@ -28,6 +28,24 @@ Before coding each screen:
 5. Produce a component/popup/interaction blueprint and write it into `资源导入清单.md`; durable assumptions go into `架构需求.md` §4.2/§10.
 6. Implement low-risk and safe local-demo behavior. Mark high-risk or ambiguous behavior as `待确认`.
 
+## Main Navigation (§4) Auto-Fill Before §4.1
+
+§4 is the main navigation/interaction map (cross-page routes and primary flow); §4.1/§4.2/§4.3 are naming-derived per-button blueprints. They are not interchangeable: a filled §4.2 does **not** mean §4 is covered. Leaving §4 empty and jumping straight to naming inference is the common cause of missing main-tab/navigation behavior in the delivered app.
+
+Rule: when §4 is empty or a placeholder (and the user has not explicitly declared static-only UI), generate and write §4 first, before §4.1/§4.2/§4.3, derived from:
+
+1. §6 capability boundaries and any explicit §4 rows.
+2. Existing routes/tab controllers when code exists.
+3. §3 screen rows and their `入口/触发` (each entry/trigger implies a §4 route).
+4. Standard cross-page flow and `project-interaction-patterns.md`.
+
+Minimum coverage: cold start → splash → auth/main tab by login state; login/register/logout routing; every main-tab switch plus any central/primary action; each screen's primary entry and back/close destination; card/avatar/stat → detail/profile/filtered list; main-action popups/sheets as route results; global back/close. Mark ambiguous entries/destinations `待确认`, and record the auto-fill in §10 when it fills a previously empty §4.
+
+```markdown
+| 入口 | 触发 | 结果 | 返回/关闭 | 备注 |
+|---|---|---|---|---|
+```
+
 ## Change-Log Reconciliation
 
 Before adding more UI code, read `架构需求.md` §10 and reconcile any recorded changes:
@@ -236,6 +254,7 @@ Prefer these local behaviors when real services are not declared:
 - Wallet/package selection: selecting a package is a local UI state; purchase loading must disable duplicate taps; success/failure/cancel must keep balance and labels consistent with the declared payment scope.
 - Media preview/delete: after picker success show a local preview and delete control; delete clears the runtime key/preview and restores the picker placeholder; picker cancel leaves state unchanged.
 - Video call demo: start timer/loading state, allow mic/speaker UI toggles, stop preview/timers on hangup, and document timeout/failure return path. Real RTC/audio routing/camera permissions require §6.
+- Un-connected video call demo layout/behavior (when there is no real RTC): render a two-frame "connecting" state — the remote/peer frame shows the peer's placeholder/grey avatar with a loading indicator below it (never a fake live remote feed), and the local/self frame shows the real or placeholder local camera preview. Show a call timer centered above the bottom bar. After the spec-defined timeout (commonly 8–10s, project-configurable), automatically pop back to the previous page and present a "not connected" popup built with the project's unified popup/dialog shell (not a system alert), with a default English message such as "Call not connected, please try again later." Stop preview and timers before leaving. The exact timeout and copy are project-defined; real camera preview/permissions still require §6.
 - Optional profile setup: allow skip/default values only when the filename/spec indicates optional profile fields; do not infer optionality for required account credentials.
 - Profile statistic drilldowns: tapping Posts/Followers/Following can push local filtered lists when the project has a local user/content/social store; counts and row actions must sync back to profile cards.
 - Cross-screen store sync: when one mutation affects reused content, relationship, wallet, or chat state, update the source store first and refresh every listening screen/card/count from that source instead of patching only the tapped view.

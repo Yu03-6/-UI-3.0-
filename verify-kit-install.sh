@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# 检查套件是否正确安装到项目根（Skill / Rule 是否可被 Cursor 加载）
+# 检查套件内容版本与交付文档质量。
+# 默认你已把 .cursor 等内容放到项目根，因此不再校验 .cursor 放置位置/是否安装。
 # 用法：./verify-kit-install.sh [项目根路径，默认 ..]
 
 set -euo pipefail
@@ -19,43 +20,7 @@ info() { echo "  [INFO] $1"; }
 echo "检查项目: $TARGET"
 echo ""
 
-echo "── Cursor 加载路径（决定 Skill 是否生效）──"
-if [[ -f "$TARGET/.cursor/skills/frontend-ui-from-spec/SKILL.md" ]]; then
-  ok "Skill 位于项目根 .cursor/skills/frontend-ui-from-spec/SKILL.md"
-else
-  fail "未找到项目根 Skill。套件仍在子文件夹内时 Cursor 不会加载。请运行: ./install-to-project.sh \"$TARGET\""
-fi
-
-if [[ -f "$TARGET/.cursor/skills/frontend-ui-from-spec/interaction-inference.md" ]]; then
-  ok "交互推断词典: .cursor/skills/frontend-ui-from-spec/interaction-inference.md"
-else
-  fail "未找到交互推断词典 interaction-inference.md（3.0 必需）"
-fi
-
-if [[ -f "$TARGET/.cursor/skills/frontend-ui-from-spec/project-interaction-patterns.md" ]]; then
-  ok "项目按钮交互模式: .cursor/skills/frontend-ui-from-spec/project-interaction-patterns.md"
-else
-  fail "未找到项目按钮交互模式 project-interaction-patterns.md（3.0 建议必装）"
-fi
-
-if [[ -f "$TARGET/.cursor/skills/frontend-ui-from-spec/screen-inventory-inference.md" ]]; then
-  ok "屏幕清单推断词典: .cursor/skills/frontend-ui-from-spec/screen-inventory-inference.md"
-else
-  fail "未找到屏幕清单推断词典 screen-inventory-inference.md（3.0 必需）"
-fi
-
-if [[ -f "$TARGET/.cursor/rules/architecture-spec-auto-skill.mdc" ]]; then
-  ok "Rule: architecture-spec-auto-skill.mdc"
-else
-  fail "未找到 architecture-spec-auto-skill.mdc"
-fi
-
-if [[ -f "$TARGET/.cursor/rules/frontend-ui-kit-bootstrap.mdc" ]]; then
-  ok "Rule: frontend-ui-kit-bootstrap.mdc（项目级常驻引导）"
-else
-  warn "未找到 frontend-ui-kit-bootstrap.mdc（3.0 建议安装，提高 Skill 触发率）"
-fi
-
+echo "── 套件内容版本检查（默认 .cursor 已放置，不校验放置位置）──"
 if [[ -f "$TARGET/.cursor/skills/frontend-ui-from-spec/SKILL.md" ]] \
   && grep -q "First-Run Ledger Gate" "$TARGET/.cursor/skills/frontend-ui-from-spec/SKILL.md"; then
   ok "首轮清单回写门槛已安装"
@@ -244,15 +209,6 @@ if [[ -f "$TARGET/架构需求.md" && -f "$TARGET/AGENTS.md" ]]; then
   else
     ok "AGENTS.md 与能力边界关键词无明显脱节"
   fi
-fi
-
-echo ""
-echo "── 常见误装检测 ──"
-NESTED_SKILL=$(find "$TARGET" -path '*/前端UI开发套件*/*/.cursor/skills/frontend-ui-from-spec/SKILL.md' 2>/dev/null | head -1 || true)
-if [[ -n "$NESTED_SKILL" && ! -f "$TARGET/.cursor/skills/frontend-ui-from-spec/SKILL.md" ]]; then
-  fail "Skill 仅存在于子目录: $NESTED_SKILL — Cursor 不会读取"
-elif [[ -n "$NESTED_SKILL" && -f "$TARGET/.cursor/skills/frontend-ui-from-spec/SKILL.md" ]]; then
-  warn "项目根与子目录套件均存在 Skill；以项目根 .cursor/ 为准，可删除或忽略子目录副本"
 fi
 
 echo ""

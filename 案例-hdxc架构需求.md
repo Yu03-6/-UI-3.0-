@@ -208,15 +208,14 @@
 
 | 能力 | 真实程度 | 说明 |
 |---|---|---|
-| 数据 | 轻量拟真本地 | `AppSession` + `ContentStore` + `SocialStore` + `ChatStore` |
-| 登录/账号 | 真实 | Apple Sign In + 邮箱注册/登录；冷启动回登录 |
+| 数据 | 轻量拟真本地 | `AppSession` + `ContentStore` + `SocialStore` + `ChatStore` + `WalletStore` + `AICharacterStore`，均为单例内存态 |
+| 登录/账号 | 真实 | Apple Sign In(已加 com.apple.developer.applesignin Capability) + 邮箱注册/登录；冷启动回登录(会话仅内存态) |
 | 账户初始数据 | 真实(本地) | 每次登录重置；新用户空态/余额 0；测试账号演示数据/余额 100 |
-| 支付/订阅 | 真实 | StoreKit 2 consumable；购买成功入账本地余额 |
-| 聊天/房间/视频 | 部分真实 | 聊天本地消息；视频聊天真实摄像头预览；无真实 RTC，10 秒未接通返回 |
+| 支付/订阅 | 真实(待配置商品) | 目标 StoreKit 2 consumable；工程暂未配置商品，Continue 现为本地入账演示(代码标 TODO)，配置后切真实购买 |
+| 聊天/房间/视频 | 部分真实 | 聊天本地消息；视频聊天右上角小窗为真实摄像头预览，对方为灰色头像+加载动画；无真实 RTC，进入 8 秒未接通自动退出并弹窗告知 |
 | AI | 仅 UI | `AIReplyEngine` 本地模板；不接模型 API；5 次免费后每条 8 金币 |
 | 媒体/权限 | 真实 | `PHPickerViewController` 选图/选视频；`AVCaptureSession` 摄像头预览 |
-| Event Pulse / Crew | 真实(本地) | `EventPulseStore` 聚合现场活动；Home Join/Check-in；Explore Live Now；Chat Event Crew；Me Event Passport |
-| 本地持久化 | 真实 | `AccountScopedStorage` 按账号隔离 |
+| 本地持久化 | 部分 | UserDefaults 仅持久化注册账户(邮箱→密码)、昵称、已删除账户列表；钱包/社交/内容/聊天为内存态，每次登录重置，未做账号级 scoped 持久化 |
 | 后端 API | 无 | 不接远程 API |
 
 ### 6.1 账户状态矩阵
@@ -224,31 +223,29 @@
 | 账户状态 | 进入方式 | 数据来源 | 页面表现 | 可演示交互 |
 |---|---|---|---|---|
 | 游客/未登录 | 冷启动 / Log out / Delete account 后 | 无账号数据 | 仅登录选择、登录、注册、协议入口 | Apple 登录、邮箱登录、注册 |
-| 新用户 | 邮箱注册 / Apple 首次登录 | `AccountBootstrap` 新用户默认值 + account-scoped key | 金币 0；空社交、空聊天、空我的动态；无预点赞 | 编辑资料、关注、发布校验、AI 免费次数、充值 |
-| 测试账号 | `xchdmm@gmail.com / xchd12345` | `AccountBootstrap` 测试账号播种数据 | 完整 Home/Explore/Chat/Me；余额 100；好友/关注/粉丝/未读/活动数据齐全 | 全链路演示；测试账号不可删除 |
-| Apple 用户 | `ASAuthorizationController` 成功 | Apple user id + 本地资料 | 新用户首次为空态；后续单进程内切换按 account id 隔离 | 与新用户一致；头像可用首字母生成 |
+| 新用户 | 邮箱注册 / Apple 首次登录 | `AppSession.activate` + 各 Store `reset(seedTest:false)` | 金币 0；空社交、空聊天、空我的动态、无点赞/Collection 为空；公共 feed 为共享演示内容(点赞数仅展示，isLiked 全 false) | 编辑资料、关注、发布校验、AI 免费次数、充值 |
+| 测试账号 | `demo@cosplay.com / cosplay11` | `AppSession.activateTestAccount` + `DemoData` 播种 | 完整 Home/Explore/Chat/Me；余额 100；好友/关注/粉丝/未读数据齐全 | 全链路演示 |
+| Apple 用户 | `ASAuthorizationController` 成功 | Apple user id + 本地资料(profiles) | 新用户首次走资料页后为空态；后续单进程内切换按 account id 隔离 | 与新用户一致 |
 
 ### 6.2 持久化与账户数据隔离
 
-- 持久化载体：UserDefaults + `AccountScopedStorage`。
-- 存储 key：按 account id 加前缀保存钱包、关注、点赞、拉黑、发布内容、资料、交易 id 等。
-- 账户隔离：`AppSession.activate` 激活账号后，各 Store 按当前账号加载；切账户不得串用上一账户的社交、聊天、余额和发布内容。
+- 持久化载体：UserDefaults，仅存注册账户(`reg_accounts` 邮箱→密码)、资料完成标记(`reg_profiles` id→nickname)。
+- 运行态数据：钱包、关注、好友、点赞、拉黑、发布内容、会话/消息均为单例内存态，未做按账号 scoped 持久化(无 `AccountScopedStorage`)。
+- 账户隔离：`AppSession.activate` 激活账号后各 Store `reset(seedTest:)` 全量重置，从而不串用上一账户数据(靠重置实现，而非 scoped 存储)。
 - 重置策略：每次重新登录重置账户状态；测试账号重新播种演示数据；AI 聊天对话和免费次数仅进程内保持。
-- 账号删除：新用户可删除并回登录选择页；内置测试账号弹窗提示不可删除。
+- 账号删除：二次确认后清除 `reg_accounts`/`reg_profiles` 凭证并登出回登录选择页；Apple 再次登录因无 profile 走新用户资料页；邮箱可同址重新注册；`activate(seedTest:false)` 重置钱包/社交/内容/聊天为空态。
 
 ### 6.3 业务规则与演示数据
-
 | 规则 | 说明 |
 |---|---|
-| 发布笔记 | 必须选择图片，必填 activity name/place/times；余额 >= 29 才可 Post；成功后扣 29 并插入本地内容 |
-| 发布视频 | 必须选择视频，必填 Content；余额 >= 39 才可 Post；成功后扣 39 并插入本地内容 |
+| 发布笔记 | 必须选择图片或视频，必填 content、label；余额 >= 29 才可 Post；成功后扣 29 并插入本地内容 |
 | AI 聊天 | 每次登录 5 次免费；之后每条 8 金币；余额不足弹自绘弹窗，不接真实模型 |
 | 点赞/关注 | 本地状态 + 动画；Home/Explore/Profile/Me 相关计数同步 |
 | 举报/拉黑 | 举报为 UI 流程；拉黑写入本地黑名单，过滤 Home/Explore/Profile 中对应内容 |
 | 好友申请 | Accept/Reject 后本地移除请求；好友列表、角标、空态刷新 |
-| Event Pulse | Join/Check-in 为本地活动状态；测试账号预置 RSVP 与 Crew 数据 |
-| 充值 | StoreKit 2 真实消耗型 IAP；购买验单并 finish 后 `AppSession.addCoins` 入账，交易 id 去重 |
-| 法务入口 | Privacy/User Agreement 走 WebView；Community Guidelines 为本地静态页；Contact Us 显示邮箱 |
+
+| 法务入口 | Privacy agreement / User agreement 走 WebView 加载 Google Docs 公开发布页；Community Guidelines 为本地静态页；Contact Us 弹窗显示邮箱 |
+
 
 ## 7. 实现顺序
 
